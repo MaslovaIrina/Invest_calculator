@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Real Estate Calculator (FastAPI demo)</title>
+  <style>
+    body { font-family: Arial, sans-serif; max-width: 720px; margin: 40px auto; padding: 0 16px; }
+    label { display:block; margin-top: 12px; }
+    input { width: 100%; padding: 10px; margin-top: 6px; box-sizing: border-box; }
+    button { margin-top: 16px; padding: 10px 14px; cursor: pointer; }
+    .card { margin-top: 20px; padding: 14px; border: 1px solid #ddd; border-radius: 10px; }
+    .row { display:flex; gap: 16px; flex-wrap: wrap; }
+    .metric { flex: 1 1 200px; padding: 10px; border: 1px solid #eee; border-radius: 10px; }
+    .err { color: #b00020; }
+  </style>
+</head>
+<body>
+  <h1>Калькулятор инвестиций (демо FastAPI)</h1>
+
+  <div class="card">
+    <label>Цена объекта (purchase_price)
+      <input id="purchase_price" type="number" step="1000" value="150000">
+    </label>
+  </div>
+
+  <div class="card">
+    <label>Аренда в месяц (monthly_rent)
+      <input id="monthly_rent" type="number" step="10" value="1200">
+    </label>
+    <label>Расходы в месяц (monthly_expenses)
+      <input id="monthly_expenses" type="number" step="10" value="300">
+    </label>
+    <label>Зарплата в месяц (monthly_salary)
+      <input id="monthly_salary" type="number" step="10" value="300">
+    </label>
+  </div>
+
+  <button id="btn">Calculate</button>
+    <div id="status" class="err" style="margin-top:10px;"></div>
+
+  <div class="card">
+    <h2>Результат</h2>
+    <div class="row">
+      <div class="metric">
+        <div><b>Monthly cashflow</b></div>
+        <div id="m_cf">—</div>
+      </div>
+      <div class="metric">
+        <div><b>Yearly cashflow</b></div>
+        <div id="y_cf">—</div>
+      </div>
+      <div class="metric">
+        <div><b>Gross yield</b></div>
+        <div id="gy">—</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const API_URL = "http://127.0.0.1:8000/api/calc";
+
+    const el = (id) => document.getElementById(id);
+
+    async function calculate() {
+      el("status").textContent = "";
+
+      const payload = {
+        purchase_price: Number(el("purchase_price").value),
+        monthly_rent: Number(el("monthly_rent").value),
+        monthly_expenses: Number(el("monthly_expenses").value),
+        monthly_salary: Number(el("monthly_salary").value),
+      };
+
+      try {
+        const res = await fetch(API_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+
+        if (!res.ok) {
+          const text = await res.text();
+          throw new Error(`API error ${res.status}: ${text}`);
+        }
+
+        const data = await res.json();
+
+        el("m_cf").textContent = data.monthly_cashflow.toFixed(2);
+        el("y_cf").textContent = data.yearly_cashflow.toFixed(2);
+        el("gy").textContent = data.gross_yield_percent.toFixed(2) + " %";
+      } catch (e) {
+        el("status").textContent =
+          "Ошибка запроса. Проверь, что FastAPI запущен на 127.0.0.1:8000. " +
+          "Текст: " + e.message;
+      }
+    }
+
+    el("btn").addEventListener("click", calculate);
+  </script>
+</body>
+</html>
