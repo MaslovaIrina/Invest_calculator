@@ -19,20 +19,55 @@
   <h1>Калькулятор инвестиций (демо FastAPI)</h1>
 
   <div class="card">
-    <label>Цена объекта (purchase_price)
-      <input id="purchase_price" type="number" step="1000" value="150000">
+    <h3>Пополнения</h3>
+    <label>Денег для ипотеки или депозита уже отложено (all_free_money)
+      <input id="all_free_money" type="number" step="1000" value="25000">
+    </label>
+    <label>Денег для ипотеки или депозита в месяц (monthly_free_money)
+      <input id="monthly_free_money" type="number" step="1000" value="25000">
+    </label>
+    <label>Непредвиденные расходы в месяц (monthly_unexpected_expenses)
+      <input id="monthly_unexpected_expenses" type="number" step="1000" value="5000">
     </label>
   </div>
 
   <div class="card">
+    <h3>Приобретение объекта</h3>
+    <label>Цена объекта (purchase_price)
+      <input id="purchase_price" type="number" step="500000" value="15000000">
+    </label>
+    <label> Ожидаемое изменение стомости недвижимости в год (в процентах) (yearly_apart_price_change)
+      <input id="yearly_apart_price_change" type="number" step="0.2" value="7">
+    </label>
+    <label>Есть ипотека?
+      <select id="has_mortgage">
+        <option value="no" selected>нет</option>
+        <option value="yes">да</option>
+      </select>
+    </label>
+
+    <div id="mortgage_block" style="display:none; margin-top:12px;">
+      <label>Срок ипотеки (mortgage_term)
+        <input id="mortgage_term" type="number" step="1" value="">
+      </label>
+      <label>Процент по ипотеке, годовой (ipotek_percent)
+        <input id="ipotek_percent" type="number" step="1" value="">
+      </label>
+    </div>
+
+
+  </div>
+
+  <div class="card">
+    <h3>Накопления</h3>
     <label>Аренда в месяц (monthly_rent)
       <input id="monthly_rent" type="number" step="10" value="1200">
     </label>
-    <label>Расходы в месяц (monthly_expenses)
-      <input id="monthly_expenses" type="number" step="10" value="300">
+    <label>Удорожание аренды в год (в процентах) (yearly_rent_increase)
+      <input id="yearly_rent_increase" type="number" step="1" value="2">
     </label>
-    <label>Зарплата в месяц (monthly_salary)
-      <input id="monthly_salary" type="number" step="10" value="300">
+    <label>Процентов годовых на вкладе (invest_percent)
+      <input id="invest_percent" type="number" step="0.2" value="12">
     </label>
   </div>
 
@@ -68,8 +103,15 @@
       const payload = {
         purchase_price: Number(el("purchase_price").value),
         monthly_rent: Number(el("monthly_rent").value),
-        monthly_expenses: Number(el("monthly_expenses").value),
-        monthly_salary: Number(el("monthly_salary").value),
+        yearly_rent_increase: Number(el("yearly_rent_increase").value),
+        monthly_free_money: Number(el("monthly_free_money").value),
+        all_free_money: Number(el("all_free_money").value),
+        invest_percent: Number(el("invest_percent").value),
+        yearly_apart_price_change: Number(el("yearly_apart_price_change").value),
+        monthly_unexpected_expenses: Number(el("monthly_unexpected_expenses").value),
+        has_mortgage: el("has_mortgage").value === "yes",
+        mortgage_term: el("has_mortgage").value === "yes" ? Number(el("mortgage_term").value) : null,
+        ipotek_percent: el("has_mortgage").value === "yes" ? Number(el("ipotek_percent").value) : null,
       };
 
       try {
@@ -95,6 +137,13 @@
           "Текст: " + e.message;
       }
     }
+    function toggleMortgageBlock() {
+      const yes = el("has_mortgage").value === "yes";
+      el("mortgage_block").style.display = yes ? "block" : "none";
+      }
+
+    el("has_mortgage").addEventListener("change", toggleMortgageBlock);
+    toggleMortgageBlock(); // вызвать один раз при загрузке
 
     el("btn").addEventListener("click", calculate);
   </script>
