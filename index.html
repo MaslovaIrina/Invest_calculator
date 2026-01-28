@@ -19,7 +19,10 @@
   <h1>Калькулятор инвестиций (демо FastAPI)</h1>
 
   <div class="card">
-    <h3>Пополнения</h3>
+    <h3>Общая информация</h3>
+    <label>На сколько лет расчет(years_of_calculation)
+      <input id="years_of_calculation" type="number" step="1" value="10">
+    </label>
     <label>Денег для ипотеки или депозита уже отложено (all_free_money)
       <input id="all_free_money" type="number" step="1000" value="25000">
     </label>
@@ -102,6 +105,7 @@
 
       const payload = {
         purchase_price: Number(el("purchase_price").value),
+        years_of_calculation: Number(el("years_of_calculation").value),
         monthly_rent: Number(el("monthly_rent").value),
         yearly_rent_increase: Number(el("yearly_rent_increase").value),
         monthly_free_money: Number(el("monthly_free_money").value),
