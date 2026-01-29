@@ -1,26 +1,25 @@
 from typing import Optional
-
 from pydantic import BaseModel, Field, model_validator
 
 
 class CalcRequest(BaseModel):
-    years_of_calculation: int = Field(gt=0, description="На сколько лет расчет")
+    years_of_calculation: int = Field(gt=0)
 
-    purchase_price: float = Field(gt=0, description="Цена недвижимости")
+    purchase_price: float = Field(gt=0)
 
-    monthly_rent: float = Field(ge=0, description="Аренда в месяц")
-    yearly_rent_increase: float = Field(ge=0, description="Рост аренды в год, %")
+    monthly_rent: float = Field(ge=0)
+    yearly_rent_increase: float = Field(ge=0)
 
-    monthly_free_money: float = Field(ge=0, description="Доступная сумма в месяц на жильё/инвестиции")
-    all_free_money: float = Field(ge=0, description="Начальный капитал для инвестиций")
-    invest_percent: float = Field(ge=0, description="Процент годовых по вкладу, %")
+    monthly_free_money: float = Field(ge=0)
+    all_free_money: float = Field(ge=0)
+    invest_percent: float = Field(ge=0)
 
-    yearly_apart_price_change: float = Field(description="Изменение цены недвижимости в год, %")
-    monthly_unexpected_expenses: float = Field(ge=0, description="Непредвиденные расходы в месяц")
+    yearly_apart_price_change: float
+    monthly_unexpected_expenses: float = Field(ge=0)
 
-    has_mortgage: bool = Field(default=False, description="Есть ипотека?")
-    mortgage_term: Optional[float] = Field(default=None, gt=0, description="Срок ипотеки (лет)")
-    ipotek_percent: Optional[float] = Field(default=None, ge=0, description="Процент по ипотеке годовых, %")
+    has_mortgage: bool = False
+    mortgage_term: Optional[float] = Field(default=None, gt=0)
+    ipotek_percent: Optional[float] = Field(default=None, ge=0)
 
     @model_validator(mode="after")
     def check_mortgage_fields(self):
@@ -34,6 +33,7 @@ class CalcRequest(BaseModel):
 
 class MonthRentaRow(BaseModel):
     month: int
+    rent_payment: float
     full_rental_price: float
     invest_profit: float
     balance_change: float
@@ -51,11 +51,6 @@ class MonthMortgageRow(BaseModel):
 class CalcResponse(BaseModel):
     rent_schedule: list[MonthRentaRow]
     buy_schedule: list[MonthMortgageRow]
-
     rent_final_balance: float
     buy_final_balance: float
     difference_final: float
-
-    monthly_cashflow: float
-    yearly_cashflow: float
-    gross_yield_percent: float

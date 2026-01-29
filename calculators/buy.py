@@ -3,7 +3,6 @@ from calculators.common import monthly_rate_from_percent
 
 
 def get_mortgage_params(req: CalcRequest, loan_balance: float) -> tuple[int, float, float]:
-    """Параметры ипотеки: (months_of_mortgage, r, mortgage_payment)."""
     if not req.has_mortgage:
         return 0, 0.0, 0.0
 
@@ -26,11 +25,6 @@ def get_mortgage_params(req: CalcRequest, loan_balance: float) -> tuple[int, flo
 
 
 def calc_buy_schedule(req: CalcRequest) -> list[MonthMortgageRow]:
-    """График выплат по ипотеке.
-
-    Упрощение: сумма кредита = purchase_price (без первоначального взноса).
-    Если ипотеки нет — долг = 0.
-    """
     months = int(req.years_of_calculation) * 12
     rows: list[MonthMortgageRow] = []
 
@@ -51,7 +45,6 @@ def calc_buy_schedule(req: CalcRequest) -> list[MonthMortgageRow]:
         interest_paid = loan_balance * r
         principal_paid = mortgage_payment - interest_paid
 
-        # Последний платёж: не уходим "в минус" по долгу
         if principal_paid > loan_balance:
             principal_paid = loan_balance
             mortgage_payment_effective = interest_paid + principal_paid
