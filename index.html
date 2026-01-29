@@ -7,7 +7,7 @@
   <style>
     body { font-family: Arial, sans-serif; max-width: 720px; margin: 40px auto; padding: 0 16px; }
     label { display:block; margin-top: 12px; }
-    input { width: 100%; padding: 10px; margin-top: 6px; box-sizing: border-box; }
+    input, select { width: 100%; padding: 10px; margin-top: 6px; box-sizing: border-box; }
     button { margin-top: 16px; padding: 10px 14px; cursor: pointer; }
     .card { margin-top: 20px; padding: 14px; border: 1px solid #ddd; border-radius: 10px; }
     .row { display:flex; gap: 16px; flex-wrap: wrap; }
@@ -19,8 +19,8 @@
   <h1>Калькулятор инвестиций (демо FastAPI)</h1>
 
   <div class="card">
-    <h3>Общая информация</h3>
-    <label>На сколько лет расчет(years_of_calculation)
+    <h3>Пополнения</h3>
+    <label>На сколько лет расчет (years_of_calculation)
       <input id="years_of_calculation" type="number" step="1" value="10">
     </label>
     <label>Денег для ипотеки или депозита уже отложено (all_free_money)
@@ -39,7 +39,7 @@
     <label>Цена объекта (purchase_price)
       <input id="purchase_price" type="number" step="500000" value="15000000">
     </label>
-    <label> Ожидаемое изменение стомости недвижимости в год (в процентах) (yearly_apart_price_change)
+    <label>Ожидаемое изменение стоимости недвижимости в год (в процентах) (yearly_apart_price_change)
       <input id="yearly_apart_price_change" type="number" step="0.2" value="7">
     </label>
     <label>Есть ипотека?
@@ -57,8 +57,6 @@
         <input id="ipotek_percent" type="number" step="1" value="">
       </label>
     </div>
-
-
   </div>
 
   <div class="card">
@@ -75,7 +73,7 @@
   </div>
 
   <button id="btn">Calculate</button>
-    <div id="status" class="err" style="margin-top:10px;"></div>
+  <div id="status" class="err" style="margin-top:10px;"></div>
 
   <div class="card">
     <h2>Результат</h2>
@@ -92,12 +90,23 @@
         <div><b>Gross yield</b></div>
         <div id="gy">—</div>
       </div>
+      <div class="metric">
+        <div><b>Rent final balance</b></div>
+        <div id="rent_final">—</div>
+      </div>
+      <div class="metric">
+        <div><b>Buy final balance</b></div>
+        <div id="buy_final">—</div>
+      </div>
+      <div class="metric">
+        <div><b>Difference (buy - rent)</b></div>
+        <div id="diff_final">—</div>
+      </div>
     </div>
   </div>
 
   <script>
     const API_URL = "http://127.0.0.1:8000/api/calc";
-
     const el = (id) => document.getElementById(id);
 
     async function calculate() {
@@ -135,20 +144,23 @@
         el("m_cf").textContent = data.monthly_cashflow.toFixed(2);
         el("y_cf").textContent = data.yearly_cashflow.toFixed(2);
         el("gy").textContent = data.gross_yield_percent.toFixed(2) + " %";
+        el("rent_final").textContent = data.rent_final_balance.toFixed(2);
+        el("buy_final").textContent = data.buy_final_balance.toFixed(2);
+        el("diff_final").textContent = data.difference_final.toFixed(2);
       } catch (e) {
         el("status").textContent =
           "Ошибка запроса. Проверь, что FastAPI запущен на 127.0.0.1:8000. " +
           "Текст: " + e.message;
       }
     }
+
     function toggleMortgageBlock() {
       const yes = el("has_mortgage").value === "yes";
       el("mortgage_block").style.display = yes ? "block" : "none";
-      }
+    }
 
     el("has_mortgage").addEventListener("change", toggleMortgageBlock);
-    toggleMortgageBlock(); // вызвать один раз при загрузке
-
+    toggleMortgageBlock();
     el("btn").addEventListener("click", calculate);
   </script>
 </body>
