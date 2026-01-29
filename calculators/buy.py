@@ -3,6 +3,14 @@ from calculators.common import monthly_rate_from_percent
 
 
 def get_mortgage_params(req: CalcRequest, loan_balance: float) -> tuple[int, float, float]:
+    '''
+    Docstring for get_mortgage_params
+    Считает ипотечные платежи и возвращает параметры для ее учета. Подходит для аннуиентных платежей.
+    :param loan_balance: остаток по ипотеке
+    :type loan_balance: float
+    :return: кортеж [месяцев ипотеки, месячный процент по ипотеке, ежемесячный платеж по ипотеке]
+
+    '''
     if not req.has_mortgage:
         return 0, 0.0, 0.0
 
@@ -25,8 +33,17 @@ def get_mortgage_params(req: CalcRequest, loan_balance: float) -> tuple[int, flo
 
 
 def calc_buy_schedule(req: CalcRequest) -> list[MonthMortgageRow]:
+    '''
+    Docstring for calc_buy_schedule
+
+    :return: Description
+    :rtype: list[MonthMortgageRow]
+    '''
     months = int(req.years_of_calculation) * 12
     rows: list[MonthMortgageRow] = []
+    apart_price = req.purchase_price
+    yearly_apart_price_change = req.yearly_apart_price_change
+    buy_balance = req.all_free_money
 
     loan_balance = float(req.purchase_price) if req.has_mortgage else 0.0
     months_of_mortgage, r, mortgage_payment = get_mortgage_params(req, loan_balance)

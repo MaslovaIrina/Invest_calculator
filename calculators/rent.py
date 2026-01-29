@@ -2,6 +2,7 @@ from schemas import CalcRequest, MonthRentaRow
 from calculators.common import monthly_rate_from_percent
 
 
+
 def calc_rent(req: CalcRequest) -> list[MonthRentaRow]:
     months = int(req.years_of_calculation) * 12
     rows: list[MonthRentaRow] = []

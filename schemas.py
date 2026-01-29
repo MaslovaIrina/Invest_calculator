@@ -3,23 +3,23 @@ from pydantic import BaseModel, Field, model_validator
 
 
 class CalcRequest(BaseModel):
-    years_of_calculation: int = Field(gt=0)
+    years_of_calculation: int = Field(gt=0)  # На сколько лет расчет
 
-    purchase_price: float = Field(gt=0)
+    purchase_price: float = Field(gt=0) # Цена объекта недвижимости
 
-    monthly_rent: float = Field(ge=0)
-    yearly_rent_increase: float = Field(ge=0)
+    monthly_rent: float = Field(ge=0) # Стоимость аренды в месяц
+    yearly_rent_increase: float = Field(ge=0) # На сколько процентов в год увеличивается стоимость аренды
 
-    monthly_free_money: float = Field(ge=0)
-    all_free_money: float = Field(ge=0)
-    invest_percent: float = Field(ge=0)
+    monthly_free_money: float = Field(ge=0) # 
+    all_free_money: float = Field(ge=0) # Начальный капитал
+    invest_percent: float = Field(ge=0) # Под какой процент депозит
 
-    yearly_apart_price_change: float
-    monthly_unexpected_expenses: float = Field(ge=0)
+    yearly_apart_price_change: float # На сколько процентов в год меняется цена недвижимости
+    monthly_unexpected_expenses: float = Field(ge=0) # Непредвиденные расчеты в месяц
 
-    has_mortgage: bool = False
-    mortgage_term: Optional[float] = Field(default=None, gt=0)
-    ipotek_percent: Optional[float] = Field(default=None, ge=0)
+    has_mortgage: bool = False # Есть ли ипотика
+    mortgage_term: Optional[float] = Field(default=None, gt=0) # На сколько лет ипотека
+    ipotek_percent: Optional[float] = Field(default=None, ge=0) # Ставка по ипотеке, % годовых
 
     @model_validator(mode="after")
     def check_mortgage_fields(self):
