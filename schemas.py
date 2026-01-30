@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, Literal
 from pydantic import BaseModel, Field, model_validator
 
 
@@ -17,17 +17,28 @@ class CalcRequest(BaseModel):
     yearly_apart_price_change: float # На сколько процентов в год меняется цена недвижимости
     monthly_unexpected_expenses: float = Field(ge=0) # Непредвиденные расчеты в месяц
 
-    has_mortgage: bool = False # Есть ли ипотика
-    mortgage_term: Optional[float] = Field(default=None, gt=0) # На сколько лет ипотека
-    ipotek_percent: Optional[float] = Field(default=None, ge=0) # Ставка по ипотеке, % годовых
+    mortgage_mode: Literal["none", "full_term", "fixed_term", "by_budget"] = "none"
+    ipotek_percent: Optional[float] = Field(default=None, ge=0)
+
+    mortgage_term_years: Optional[float] = Field(default=None, gt=0)           # для fixed_term
+    mortgage_monthly_budget: Optional[float] = Field(default=None, ge=0)       # для by_budget (если None/0 -> берем monthly_free_money)
 
     @model_validator(mode="after")
-    def check_mortgage_fields(self):
-        if self.has_mortgage:
-            if self.mortgage_term is None or self.ipotek_percent is None:
-                raise ValueError("Для ипотеки нужны mortgage_term и ipotek_percent")
-            if self.mortgage_term > 30:
+    def check_mortgage(self):
+        if self.mortgage_mode != "none":
+            if self.ipotek_percent is None:
+                raise ValueError("ipotek_percent обязателен, если mortgage_mode != none")
+
+        if self.mortgage_mode == "fixed_term":
+            if self.mortgage_term_years is None:
+                raise ValueError("mortgage_term_years обязателен для fixed_term")
+            if self.mortgage_term_years > 30:
                 raise ValueError("Ипотеку выдают не более чем на 30 лет")
+
+        if self.mortgage_mode == "by_budget":
+            if self.mortgage_monthly_budget is not None and self.mortgage_monthly_budget < 0:
+                raise ValueError("mortgage_monthly_budget не может быть отрицательным")
+
         return self
 
 
@@ -46,6 +57,12 @@ class MonthMortgageRow(BaseModel):
     interest_paid: float
     principal_paid: float
     loan_balance: float
+    buy_balance_change: float
+    paid_apart_part: float
+    buy_balance: float
+    apart_price: float
+
+
 
 
 class CalcResponse(BaseModel):

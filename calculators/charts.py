@@ -15,11 +15,11 @@ def build_chart_png(req: CalcRequest) -> bytes:
     y_rent = [r.full_invest_balance for r in rent_schedule]
 
     x_buy = [b.month for b in buy_schedule]
-    y_buy = [b.loan_balance for b in buy_schedule]
+    y_buy = [b.buy_balance for b in buy_schedule]
 
     fig = plt.figure()
     plt.plot(x_rent, y_rent, label="Rent: invest balance")
-    plt.plot(x_buy, y_buy, label="Buy: loan balance")
+    plt.plot(x_buy, y_buy, label="Buy: buy balance")
     plt.xlabel("Month")
     plt.ylabel("Value")
     plt.legend()

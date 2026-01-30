@@ -33,8 +33,8 @@ def calc(req: CalcRequest) -> CalcResponse:
     rent_final = float(rent_schedule[-1].full_invest_balance) if rent_schedule else float(req.all_free_money)
 
     # Пока упрощение: капитал в покупке = цена - остаток долга
-    loan_end = float(buy_schedule[-1].loan_balance) if buy_schedule else 0.0
-    buy_final = float(req.purchase_price) - loan_end
+    buy_end = float(buy_schedule[-1].buy_balance) if buy_schedule else 0.0
+    buy_final = float(req.purchase_price) - buy_end
 
     return CalcResponse(
         rent_schedule=rent_schedule,
