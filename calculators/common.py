@@ -1,4 +1,4 @@
-import matplotlib.pyplot as plt
+
 
 def monthly_rate_from_percent(yearly_percent: float) -> float:
     """Годовая ставка -> месячная.

@@ -9,135 +9,81 @@
     .page { max-width: 1800px; margin: 0 auto; padding: 24px 16px; }
     h1 { margin: 0 0 16px; }
 
-    .layout {
-      display: grid;
-      grid-template-columns: 560px 1fr;
-      gap: 16px;
-      align-items: start;
-    }
-    @media (max-width: 980px) {
-      .layout { grid-template-columns: 1fr; }
-    }
+    .layout { display: grid; grid-template-columns: 560px 1fr; gap: 16px; align-items: start; }
+    @media (max-width: 980px) { .layout { grid-template-columns: 1fr; } }
 
-    .card {
-      background: #fff;
-      padding: 14px;
-      border: 1px solid #ddd;
-      border-radius: 10px;
-      margin-bottom: 12px;
-    }
+    .card { background:#fff; padding:14px; border:1px solid #ddd; border-radius:10px; margin-bottom:12px; }
 
     label { display:block; margin-top: 12px; font-size: 14px; }
-    input, select {
-      width: 100%;
-      padding: 10px;
-      margin-top: 6px;
-      box-sizing: border-box;
-      border: 1px solid #ccc;
-      border-radius: 8px;
-      outline: none;
-    }
+    input, select { width:100%; padding:10px; margin-top:6px; box-sizing:border-box; border:1px solid #ccc; border-radius:8px; }
 
-    button {
-      width: 100%;
-      margin-top: 16px;
-      padding: 12px 14px;
-      border: 0;
-      border-radius: 10px;
-      cursor: pointer;
-      background: #111;
-      color: #fff;
-      font-weight: 600;
-    }
+    button { width:100%; margin-top:16px; padding:12px 14px; border:0; border-radius:10px; cursor:pointer; background:#111; color:#fff; font-weight:600; }
     button:hover { opacity: 0.92; }
 
-    .err { color: #b00020; margin-top: 10px; }
+    .err { color:#b00020; margin-top:10px; }
 
-    .row { display:flex; gap: 12px; flex-wrap: wrap; }
-    .metric {
-      flex: 1 1 220px;
-      padding: 10px;
+    .row { display:flex; gap:12px; flex-wrap:wrap; }
+    .metric { flex:1 1 220px; padding:10px; border:1px solid #eee; border-radius:10px; background:#fff; }
+    .metric b { display:block; margin-bottom:6px; }
+
+    .placeholder { padding:18px; border:1px dashed #ddd; border-radius:10px; background:#fff; color:#555; }
+
+    details { border:1px solid #eee; border-radius:10px; padding:10px 12px; background:#fff; }
+    details + details { margin-top: 10px; }
+    summary { cursor:pointer; font-weight:700; list-style:none; }
+    summary::-webkit-details-marker { display:none; }
+
+    .tableWrap { margin-top:10px; max-height:420px; overflow:auto; border:1px solid #eee; border-radius:10px; }
+    table { width:100%; border-collapse:collapse; }
+    th, td { padding:8px; border-bottom:1px solid #f0f0f0; text-align:left; }
+    th { border-bottom:1px solid #ddd; position:sticky; top:0; background:#fff; }
+
+    .small { font-size:12px; opacity:0.8; margin-top:6px; }
+
+    /* Ограничение размера графиков */
+    .chartImg {
+      width: 100%;
+      max-width: 1000px;
+      max-height: 360px;
+      object-fit: contain;
+      display: block;
+      margin: 0 auto;
       border: 1px solid #eee;
       border-radius: 10px;
       background: #fff;
     }
-    .metric b { display:block; margin-bottom: 6px; }
-
-    table { width:100%; border-collapse: collapse; }
-    th, td { padding: 8px; border-bottom: 1px solid #f0f0f0; text-align:left; }
-    th { border-bottom: 1px solid #ddd; position: sticky; top: 0; background: #fff; }
-
-    .small { font-size: 12px; opacity: 0.8; margin-top: 6px; }
 
     @media (min-width: 981px) {
       .leftColumn { position: sticky; top: 16px; }
     }
-
-    /* Right-side placeholder/results toggle */
-    .placeholder {
-      padding: 18px;
-      border: 1px dashed #ddd;
-      border-radius: 10px;
-      background: #fff;
-      color: #555;
-    }
-
-    /* Collapsible tables */
-    details {
-      border: 1px solid #eee;
-      border-radius: 10px;
-      padding: 10px 12px;
-      background: #fff;
-    }
-    details + details { margin-top: 10px; }
-    summary {
-      cursor: pointer;
-      font-weight: 700;
-      list-style: none;
-      outline: none;
-    }
-    summary::-webkit-details-marker { display: none; }
-    .tableWrap {
-      margin-top: 10px;
-      max-height: 420px;
-      overflow: auto;
-      border: 1px solid #eee;
-      border-radius: 10px;
-    }
-    #chart_img{
-      width: 100%;
-      max-width: 900px;      /* чтобы не разъезжался слишком широко */
-      max-height: 320px;     /* ключевое: ограничили высоту */
-      object-fit: contain;   /* не обрезать, а вписать */
-      display: block;
-      margin: 0 auto;
-    }
-
   </style>
 </head>
 
 <body>
   <div class="page">
-    <h1>Калькулятор (аренда vs ипотека)</h1>
+    <h1>Калькулятор: аренда vs покупка</h1>
 
     <div class="layout">
-      <!-- LEFT: INPUTS -->
+      <!-- LEFT -->
       <div class="leftColumn">
         <div class="card">
           <h3 style="margin:0 0 8px;">Ввод данных</h3>
 
-          <div style="margin-top:10px; font-weight:600;">Общая информация</div>
+          <div style="margin-top:10px; font-weight:600;">Общие</div>
           <label>На сколько лет расчет (years_of_calculation)
             <input id="years_of_calculation" type="number" step="1" value="10">
           </label>
           <label>Начальный капитал (all_free_money)
-            <input id="all_free_money" type="number" step="1000" value="10000000">
+            <input id="all_free_money" type="number" step="1000" value="2500000">
           </label>
-          <label>Свободно в месяц на жильё/инвестиции (monthly_free_money)
-            <input id="monthly_free_money" type="number" step="1000" value="80000">
+          <label>Свободно в месяц (monthly_free_money)
+            <input id="monthly_free_money" type="number" step="1000" value="250000">
           </label>
           <label>Непредвиденные расходы в месяц (monthly_unexpected_expenses)
-            <input id="monthly_unexpected_expenses" type="number" step="1000" value="0">
+            <input id="monthly_unexpected_expenses" type="number" step="1000" value="10000">
+          </label>
+          <label>Доходность депозита/инвестиций, % годовых (invest_percent)
+            <input id="invest_percent" type="number" step="0.5" value="12">
           </label>
 
           <hr style="border:none; border-top:1px solid #eee; margin:14px 0;">
@@ -146,9 +92,10 @@
           <label>Цена объекта (purchase_price)
             <input id="purchase_price" type="number" step="500000" value="15000000">
           </label>
-          <label>Изменение цены в год, % (yearly_apart_price_change)
+          <label>Рост цены в год, % (yearly_apart_price_change)
             <input id="yearly_apart_price_change" type="number" step="0.2" value="7">
           </label>
+
           <label>Режим ипотеки (mortgage_mode)
             <select id="mortgage_mode">
               <option value="none" selected>без ипотеки</option>
@@ -174,21 +121,17 @@
             <label>Бюджет платежа в месяц (mortgage_monthly_budget)
               <input id="mortgage_monthly_budget" type="number" step="1000" value="120000">
             </label>
-            <div class="small">Если оставить 0 — можно считать, что бюджет = monthly_free_money.</div>
+            <div class="small">Если 0 — будет использован monthly_free_money.</div>
           </div>
-
 
           <hr style="border:none; border-top:1px solid #eee; margin:14px 0;">
 
-          <div style="margin-top:2px; font-weight:600;">Аренда + инвестиции</div>
+          <div style="margin-top:2px; font-weight:600;">Аренда</div>
           <label>Аренда в месяц (monthly_rent)
-            <input id="monthly_rent" type="number" step="100" value="40000">
+            <input id="monthly_rent" type="number" step="1000" value="120000">
           </label>
           <label>Рост аренды в год, % (yearly_rent_increase)
-            <input id="yearly_rent_increase" type="number" step="0.5" value="0">
-          </label>
-          <label>Доходность инвестиций, % годовых (invest_percent)
-            <input id="invest_percent" type="number" step="0.5" value="12">
+            <input id="yearly_rent_increase" type="number" step="0.5" value="5">
           </label>
 
           <button id="btn">Посчитать</button>
@@ -196,56 +139,49 @@
         </div>
       </div>
 
-      <!-- RIGHT: RESULTS -->
+      <!-- RIGHT -->
       <div>
         <div id="right_placeholder" class="placeholder">
           <b>Заполните данные и нажмите «Посчитать».</b>
-          <div style="margin-top:8px;">
-            Здесь появятся итоги, график и таблицы.
-          </div>
+          <div style="margin-top:8px;">Здесь появятся итоги, графики и таблицы.</div>
         </div>
 
         <div id="right_results" style="display:none;">
           <div class="card">
             <h2 style="margin:0 0 12px;">Результаты</h2>
             <div class="row">
-              <div class="metric">
-                <b>Rent final balance</b>
-                <div id="rent_final">—</div>
-              </div>
-              <div class="metric">
-                <b>Buy final balance</b>
-                <div id="buy_final">—</div>
-              </div>
-              <div class="metric">
-                <b>Difference (buy - rent)</b>
-                <div id="diff_final">—</div>
-              </div>
+              <div class="metric"><b>Итог: аренда+депозит</b><div id="rent_final">—</div></div>
+              <div class="metric"><b>Итог: покупка</b><div id="buy_final">—</div></div>
+              <div class="metric"><b>Разница (покупка − аренда)</b><div id="diff_final">—</div></div>
             </div>
           </div>
 
+          <!-- График #1 сверху -->
           <div class="card">
-            <h2 style="margin:0 0 12px;">График (рисуется Python)</h2>
-            <img id="chart_img" alt="chart"
-                 style="width:100%; border:1px solid #eee; border-radius:10px;" />
-            <div class="small">
-              Линия 1: инвестиционный баланс (аренда). Линия 2: остаток долга (ипотека).
-            </div>
+            <h2 style="margin:0 0 12px;">График: сравнение капиталов</h2>
+            <img id="chart_main_img" class="chartImg" alt="main chart"/>
+            <div class="small">Покупка = net worth, аренда = баланс депозита.</div>
           </div>
 
           <div class="card">
             <h2 style="margin:0 0 12px;">Таблицы</h2>
 
             <details id="rent_details">
-              <summary>Таблица: аренда (все месяцы)</summary>
+              <summary>Аренда (помесячно)</summary>
               <div class="tableWrap" id="rent_table"></div>
             </details>
 
             <details id="buy_details">
-              <summary>Таблица: ипотека (все месяцы)</summary>
+              <summary>Покупка / ипотека (помесячно)</summary>
               <div class="tableWrap" id="buy_table"></div>
             </details>
           </div>
+
+          <div class = "card", id = "mortgage_chart_card", style="display:none;">
+            <h3 style="margin:0 0 8px;">Структура ипотечного платежа</h3> 
+            <img id="chart_mortgage_img" class="chartImg" alt="mortgage chart"/>
+          </div>
+
         </div>
       </div>
     </div>
@@ -253,18 +189,14 @@
 
   <script>
     const API_CALC_URL = "http://127.0.0.1:8000/api/calc";
-    const API_CHART_URL = "http://127.0.0.1:8000/api/chart";
     const el = (id) => document.getElementById(id);
 
     function toggleMortgageBlocks() {
       const mode = el("mortgage_mode").value;
-
-      const showCommon = mode !== "none";
-      el("mortgage_common").style.display = showCommon ? "block" : "none";
+      el("mortgage_common").style.display = mode !== "none" ? "block" : "none";
       el("mortgage_fixed_term").style.display = mode === "fixed_term" ? "block" : "none";
       el("mortgage_budget").style.display = mode === "by_budget" ? "block" : "none";
-      }
-
+    }
 
     function showResultsRightPanel() {
       el("right_placeholder").style.display = "none";
@@ -298,26 +230,10 @@
       return await res.json();
     }
 
-    async function fetchChartBlob(payload) {
-      const res = await fetch(API_CHART_URL, {
-        method: "POST",
-        headers: {"Content-Type": "application/json"},
-        body: JSON.stringify(payload),
-      });
-      if (!res.ok) {
-        const text = await res.text();
-        throw new Error(`Chart error ${res.status}: ${text}`);
-      }
-      return await res.blob();
-    }
-
     async function calculate() {
       el("status").textContent = "";
 
       const mode = el("mortgage_mode").value;
-
-      let budget = Number(el("mortgage_monthly_budget")?.value || 0);
-      if (!budget || budget < 0) budget = 0;
 
       const payload = {
         years_of_calculation: Number(el("years_of_calculation").value),
@@ -336,22 +252,33 @@
         mortgage_mode: mode,
         ipotek_percent: mode !== "none" ? Number(el("ipotek_percent").value) : null,
         mortgage_term_years: mode === "fixed_term" ? Number(el("mortgage_term_years").value) : null,
-        mortgage_monthly_budget: mode === "by_budget" ? budget : null,
+        mortgage_monthly_budget: mode === "by_budget" ? Number(el("mortgage_monthly_budget").value || 0) : null,
       };
 
       try {
         const data = await fetchJson(API_CALC_URL, payload);
-
-        // Показать правую панель только после успешного расчёта
         showResultsRightPanel();
 
         el("rent_final").textContent = Number(data.rent_final_balance).toFixed(2);
         el("buy_final").textContent = Number(data.buy_final_balance).toFixed(2);
         el("diff_final").textContent = Number(data.difference_final).toFixed(2);
 
+        // график #1 (сверху)
+        el("chart_main_img").src = "data:image/png;base64," + data.chart_main_base64;
+
+        // график #2 (внутри buy блока)
+        const hasMortgage = data.buy_schedule.some(r => Number(r.mortgage_payment) > 0);
+        el("mortgage_chart_card").style.display = hasMortgage ? "block" : "none";
+
+        if (hasMortgage) {
+          el("chart_mortgage_img").src = "data:image/png;base64," + data.chart_mortgage_base64;
+}
+
+
+        // Таблица аренды
         buildTable(
           "rent_table",
-          ["Month", "Rent", "Cum rent", "Invest profit", "Balance change", "Invest balance"],
+          ["Месяц", "Аренда (мес)", "Сумма аренды", "Доход (депозит)", "Изменение баланса", "Баланс депозита"],
           data.rent_schedule.map(r => [
             r.month,
             Number(r.rent_payment).toFixed(2),
@@ -362,9 +289,21 @@
           ])
         );
 
+        // Таблица покупки/ипотеки
         buildTable(
           "buy_table",
-          ["Month", "Payment", "Interest", "Principal", "Loan balance",'Изменение баланса' ,'оплаченная часть ипотеки' ,'общий баланс' , 'цена объекта с учетом роста цен'],
+          [
+            "Месяц",
+            "Платёж по ипотеке",
+            "Проценты банку",
+            "Погашение тела",
+            "Остаток долга",
+            "Изменение общего капитала",
+            "Выкуплено в квартире (капитал)",
+            "Денежный баланс (депозит)",
+            "Рыночная цена квартиры",
+            "Итоговый капитал (net worth)"
+          ],
           data.buy_schedule.map(r => [
             r.month,
             Number(r.mortgage_payment).toFixed(2),
@@ -375,12 +314,9 @@
             Number(r.paid_apart_part).toFixed(2),
             Number(r.buy_balance).toFixed(2),
             Number(r.apart_price).toFixed(2),
+            Number(r.net_worth_buy).toFixed(2),
           ])
         );
-
-
-        const blob = await fetchChartBlob(payload);
-        el("chart_img").src = URL.createObjectURL(blob);
 
       } catch (e) {
         el("status").textContent = "Ошибка: " + e.message;
@@ -389,7 +325,6 @@
 
     el("mortgage_mode").addEventListener("change", toggleMortgageBlocks);
     toggleMortgageBlocks();
-
     el("btn").addEventListener("click", calculate);
   </script>
 </body>

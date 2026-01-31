@@ -1,25 +1,22 @@
 # calculators/buy.py
 import math
-from typing import Optional, Tuple
+from typing import Tuple
 
 from schemas import CalcRequest, MonthMortgageRow
 from calculators.common import monthly_rate_from_percent
 
 
 # ----------------------------
-# Small helpers
+# Helpers
 # ----------------------------
 
 def monthly_growth_from_yearly_linear(yearly_percent: float) -> float:
-    """Линейный месячный рост"""
+    """Линейный месячный рост: yearly% / 12."""
     return (yearly_percent / 100.0) / 12.0
 
 
 def apply_deposit_interest(balance: float, monthly_rate: float) -> float:
-    """
-    Начисляем процент на депозит/счёт.
-    Если баланс отрицательный — не начисляем.
-    """
+    """Начисляем процент на депозит. Баланс не может стать отрицательным."""
     if balance <= 0.0 or monthly_rate <= 0.0:
         return balance
     return balance * (1.0 + monthly_rate)
@@ -37,9 +34,8 @@ def calc_annuity_payment(loan: float, r: float, n_months: int) -> float:
 
 def calc_months_by_budget(loan: float, r: float, monthly_budget: float) -> int:
     """
-    Подбор срока (в месяцах) по бюджету платежа P:
-    - если P слишком мал (<= r*L) — кредит не погасится, вернём очень большое число
-    - иначе формула для n через логарифм
+    Подбор срока по бюджету платежа P.
+    Если P слишком мал (<= r*L) — кредит не погасится, вернём очень большое число.
     """
     if loan <= 0.0:
         return 0
@@ -49,7 +45,6 @@ def calc_months_by_budget(loan: float, r: float, monthly_budget: float) -> int:
     if r == 0.0:
         return int(math.ceil(loan / monthly_budget))
 
-    # Критическое условие: платеж должен покрывать проценты первого месяца
     if monthly_budget <= r * loan:
         return 10**9
 
@@ -107,7 +102,7 @@ def apply_mortgage_month(loan_balance: float, r: float, payment: float) -> Tuple
     """
     Один месяц ипотеки.
     Возвращает: (interest_paid, principal_paid, new_loan_balance, effective_payment)
-    effective_payment = interest + principal (учитывает последний платеж без переплаты тела)
+    effective_payment = interest + principal (с учетом последнего платежа без переплаты тела)
     """
     if loan_balance <= 0.0:
         return 0.0, 0.0, 0.0, 0.0
@@ -115,10 +110,9 @@ def apply_mortgage_month(loan_balance: float, r: float, payment: float) -> Tuple
     interest_paid = loan_balance * r
     principal_paid = payment - interest_paid
 
-    # Платеж не покрывает проценты: долг растет
+    # Платеж не покрывает проценты: долг растёт -> это сценарий "не тянет ипотеку"
     if principal_paid < 0.0:
-        new_loan = loan_balance + (-principal_paid)
-        return float(interest_paid), 0.0, float(new_loan), float(payment)
+        raise ValueError("Платеж меньше процентов по ипотеке — кредит не погашается. Увеличьте платеж или уменьшите сумму/ставку.")
 
     # Последний платеж: не переплачиваем тело
     if principal_paid > loan_balance:
@@ -129,6 +123,15 @@ def apply_mortgage_month(loan_balance: float, r: float, payment: float) -> Tuple
     return float(interest_paid), float(principal_paid), float(new_loan), float(effective_payment)
 
 
+def monthly_payment_capacity(req: CalcRequest) -> float:
+    """
+    Сколько пользователь реально может отдать в месяц на ипотеку/инвестирование.
+    По твоему правилу: платеж должен укладываться в бюджет.
+    """
+    cap = float(req.monthly_free_money) - float(req.monthly_unexpected_expenses)
+    return cap
+
+
 # ----------------------------
 # Main
 # ----------------------------
@@ -137,24 +140,25 @@ def calc_buy_schedule(req: CalcRequest) -> list[MonthMortgageRow]:
     months_total = int(req.years_of_calculation) * 12
     rows: list[MonthMortgageRow] = []
 
-    # 1) Покупка: считаем, что all_free_money идёт на первоначальный взнос
-    down_payment = float(req.all_free_money)
-    loan_balance = max(0.0, float(req.purchase_price) - down_payment)
+    # 1) Покупка: из all_free_money оплачиваем максимум purchase_price
+    purchase_price = float(req.purchase_price)
+    all_free_money = float(req.all_free_money)
 
-    # 2) Денежный счёт/депозит: после покупки считаем, что свободные деньги = 0
-    # (всё ушло на взнос). Дальше депозит формируется ежемесячным денежным потоком.
-    buy_balance = 0.0
+    down_payment_used = min(all_free_money, purchase_price)
+    loan_balance = max(0.0, purchase_price - down_payment_used)
 
-    # 3) Ставки
-    deposit_r = monthly_rate_from_percent(req.invest_percent)  # депозит/инвест доходность (в месяц)
+    # 2) Остаток денег (если all_free_money > purchase_price) идёт на депозит
+    buy_balance = max(0.0, all_free_money - down_payment_used)
+
+    # 3) Ставки и рост цены квартиры
+    deposit_r = monthly_rate_from_percent(req.invest_percent)
     apart_growth_r = monthly_growth_from_yearly_linear(req.yearly_apart_price_change)
 
-    # 4) Цена квартиры (актив)
-    apart_price = float(req.purchase_price)
+    apart_price = purchase_price
 
-    # 5) Ипотечные параметры
+    # 4) Ипотека: параметры
     mortgage_r = 0.0
-    if req.mortgage_mode != "none":
+    if req.mortgage_mode != "none" and loan_balance > 0.0:
         if req.ipotek_percent is None:
             raise ValueError("ipotek_percent обязателен, если ипотека включена")
         mortgage_r = monthly_rate_from_percent(req.ipotek_percent)
@@ -162,8 +166,16 @@ def calc_buy_schedule(req: CalcRequest) -> list[MonthMortgageRow]:
     months_of_mortgage = choose_mortgage_months(req, loan_balance, mortgage_r, months_total)
     planned_payment = choose_mortgage_payment(req, loan_balance, mortgage_r, months_of_mortgage)
 
+    # 5) Проверка “не тянет ипотеку” 
+    cap = monthly_payment_capacity(req)
+    if planned_payment > 0.0 and planned_payment > cap:
+        raise ValueError(
+            f"Платёж по ипотеке ({planned_payment:.2f}) больше доступного бюджета в месяц ({cap:.2f}). "
+            "Уменьшите платёж/срок/сумму кредита или увеличьте monthly_free_money."
+        )
+
     for m in range(1, months_total + 1):
-        # --- 1) Обновляем стоимость квартиры ---
+        # --- 1) Стоимость квартиры растёт ---
         apart_price_change = apart_price * apart_growth_r
         apart_price += apart_price_change
 
@@ -186,25 +198,31 @@ def calc_buy_schedule(req: CalcRequest) -> list[MonthMortgageRow]:
             interest_paid = 0.0
             principal_paid = 0.0
 
-        # --- 3) Депозит/денежный баланс: ВСЕГДА существует, даже после закрытия ипотеки ---
-        # Сначала начисляем % на депозит
+        # --- 3) Депозит: всегда есть, НО мы его не уменьшаем ---
         before_balance = buy_balance
         buy_balance = apply_deposit_interest(buy_balance, deposit_r)
 
-        # Потом учитываем денежный поток месяца:
-        # monthly_free_money — общий бюджет на жильё/инвестиции
-        # monthly_unexpected_expenses — внезапные траты (есть всегда)
-        cash_after_housing = float(req.monthly_free_money) - mortgage_payment - float(req.monthly_unexpected_expenses)
+        # Денежный поток месяца: сколько осталось после ипотеки и unexpected
+        cap = monthly_payment_capacity(req)
+        cash_after_housing = cap - mortgage_payment
+        
+        if cash_after_housing < -1e-9:
+            raise ValueError("Ипотечный платеж превышает доступный месячный бюджет.")
 
+        # Остаток добавляем на депозит
         buy_balance += cash_after_housing
-        buy_balance_change = buy_balance - before_balance
 
-        # --- 4) Сколько квартиры "выкуплено" ---
-        paid_apart_part = float(req.purchase_price) - loan_balance
+        buy_balance_change = buy_balance - before_balance +  apart_price_change
+
+        # --- 4) Сколько квартиры “выкуплено” ---
+        paid_apart_part = purchase_price - loan_balance
         if paid_apart_part < 0.0:
             paid_apart_part = 0.0
-        if paid_apart_part > float(req.purchase_price):
-            paid_apart_part = float(req.purchase_price)
+        if paid_apart_part > purchase_price:
+            paid_apart_part = purchase_price
+
+        # --- 5) Выгода/капитал в сценарии покупки ---
+        net_worth_buy = apart_price + buy_balance - loan_balance
 
         rows.append(MonthMortgageRow(
             month=m,
@@ -217,6 +235,8 @@ def calc_buy_schedule(req: CalcRequest) -> list[MonthMortgageRow]:
             paid_apart_part=round(paid_apart_part, 2),
             buy_balance=round(buy_balance, 2),
             apart_price=round(apart_price, 2),
+
+            net_worth_buy=round(net_worth_buy, 2),
         ))
 
     return rows

@@ -57,10 +57,14 @@ class MonthMortgageRow(BaseModel):
     interest_paid: float
     principal_paid: float
     loan_balance: float
+
     buy_balance_change: float
     paid_apart_part: float
     buy_balance: float
     apart_price: float
+
+    net_worth_buy: float  
+
 
 
 
@@ -71,3 +75,6 @@ class CalcResponse(BaseModel):
     rent_final_balance: float
     buy_final_balance: float
     difference_final: float
+    
+    chart_main_base64: str
+    chart_mortgage_base64: str
