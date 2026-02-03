@@ -56,6 +56,20 @@
     @media (min-width: 981px) {
       .leftColumn { position: sticky; top: 16px; }
     }
+    .mortgageChartsRow {
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+      flex-wrap: wrap; /* чтобы на узком экране переносилось */
+    }
+
+    .mortgageChartsRow .chartImg {
+      width: 100%;
+      max-width: 490px;  /* чтобы 2 влезали рядом */
+      max-height: 360px;
+      object-fit: contain;
+    }
+
   </style>
 </head>
 
@@ -74,13 +88,13 @@
             <input id="years_of_calculation" type="number" step="1" value="10">
           </label>
           <label>Начальный капитал (all_free_money)
-            <input id="all_free_money" type="number" step="1000" value="2500000">
+            <input id="all_free_money" type="number" step="1000" value="6000000">
           </label>
           <label>Свободно в месяц (monthly_free_money)
-            <input id="monthly_free_money" type="number" step="1000" value="250000">
+            <input id="monthly_free_money" type="number" step="1000" value="80000">
           </label>
           <label>Непредвиденные расходы в месяц (monthly_unexpected_expenses)
-            <input id="monthly_unexpected_expenses" type="number" step="1000" value="10000">
+            <input id="monthly_unexpected_expenses" type="number" step="1000" value="0">
           </label>
           <label>Доходность депозита/инвестиций, % годовых (invest_percent)
             <input id="invest_percent" type="number" step="0.5" value="12">
@@ -90,7 +104,7 @@
 
           <div style="margin-top:2px; font-weight:600;">Покупка</div>
           <label>Цена объекта (purchase_price)
-            <input id="purchase_price" type="number" step="500000" value="15000000">
+            <input id="purchase_price" type="number" step="500000" value="10000000">
           </label>
           <label>Рост цены в год, % (yearly_apart_price_change)
             <input id="yearly_apart_price_change" type="number" step="0.2" value="7">
@@ -107,19 +121,19 @@
 
           <div id="mortgage_common" style="display:none; margin-top:12px;">
             <label>Ставка по ипотеке, % годовых (ipotek_percent)
-              <input id="ipotek_percent" type="number" step="0.5" value="12">
+              <input id="ipotek_percent" type="number" step="0.5" value="18">
             </label>
           </div>
 
           <div id="mortgage_fixed_term" style="display:none; margin-top:12px;">
             <label>Срок ипотеки, лет (mortgage_term_years)
-              <input id="mortgage_term_years" type="number" step="1" value="20">
+              <input id="mortgage_term_years" type="number" step="1" value="10">
             </label>
           </div>
 
           <div id="mortgage_budget" style="display:none; margin-top:12px;">
             <label>Бюджет платежа в месяц (mortgage_monthly_budget)
-              <input id="mortgage_monthly_budget" type="number" step="1000" value="120000">
+              <input id="mortgage_monthly_budget" type="number" step="1000" value="80000">
             </label>
             <div class="small">Если 0 — будет использован monthly_free_money.</div>
           </div>
@@ -128,7 +142,7 @@
 
           <div style="margin-top:2px; font-weight:600;">Аренда</div>
           <label>Аренда в месяц (monthly_rent)
-            <input id="monthly_rent" type="number" step="1000" value="120000">
+            <input id="monthly_rent" type="number" step="1000" value="40000">
           </label>
           <label>Рост аренды в год, % (yearly_rent_increase)
             <input id="yearly_rent_increase" type="number" step="0.5" value="5">
@@ -177,11 +191,14 @@
             </details>
           </div>
 
-          <div class = "card", id = "mortgage_chart_card", style="display:none;">
-            <h3 style="margin:0 0 8px;">Структура ипотечного платежа</h3> 
-            <img id="chart_mortgage_img" class="chartImg" alt="mortgage chart"/>
-          </div>
+          <div class="card" id="mortgage_chart_card" style="display:none;">
+            <h3 style="margin:0 0 8px;">Структура ипотечного платежа</h3>
 
+            <div class="mortgageChartsRow">
+              <img id="chart_mortgage_img" class="chartImg" alt="mortgage bar chart"/>
+              <img id="chart_mortgage_pie_img" class="chartImg" alt="mortgage pie chart"/>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -259,9 +276,9 @@
         const data = await fetchJson(API_CALC_URL, payload);
         showResultsRightPanel();
 
-        el("rent_final").textContent = Number(data.rent_final_balance).toFixed(2);
-        el("buy_final").textContent = Number(data.buy_final_balance).toFixed(2);
-        el("diff_final").textContent = Number(data.difference_final).toFixed(2);
+        el("rent_final").textContent = Number(data.rent_final_balance).toFixed(0);
+        el("buy_final").textContent = Number(data.buy_final_balance).toFixed(0);
+        el("diff_final").textContent = Number(data.difference_final).toFixed(0);
 
         // график #1 (сверху)
         el("chart_main_img").src = "data:image/png;base64," + data.chart_main_base64;
@@ -272,6 +289,8 @@
 
         if (hasMortgage) {
           el("chart_mortgage_img").src = "data:image/png;base64," + data.chart_mortgage_base64;
+
+          el("chart_mortgage_pie_img").src = "data:image/png;base64," + data.chart_mortgage_pie_png_base64;
 }
 
 

@@ -39,20 +39,80 @@ def build_main_chart_png_base64(
 
 
 def build_mortgage_bar_chart_png_base64(
-    buy_schedule: list[MonthMortgageRow],
+    buy_schedule: list[MonthMortgageRow]
+) -> str:
+    # Строим график "Проценты vs Тело кредита" по ипотеке
+    x = [b.month for b in buy_schedule]
+    deposit_balance = [b.deposit_change for b in buy_schedule]
+    interest = [b.interest_paid for b in buy_schedule]
+    principal = [b.principal_paid for b in buy_schedule]
+
+    #deposit_balance = [x if x < req.monthly_free_money else req.monthly_free_money for x in deposit_balance]
+
+
+    fig = plt.figure()
+    plt.bar(x, interest, label="Оплата процентов ипотеки")
+    plt.bar(x, principal, bottom=interest, label="Тело кредита")
+    plt.bar(x, deposit_balance , bottom=[i + p for i, p in zip(interest, principal)], label="Пополнение депозита")
+    plt.xlabel("Месяц")
+    plt.ylabel("Платёж")
+    plt.legend()
+    plt.tight_layout()
+
+    buf = io.BytesIO()
+    fig.savefig(buf, format="png", dpi=130)
+    plt.close(fig)
+    return _png_bytes_to_base64(buf.getvalue())
+'''
+
+def build_mortgage_bar_chart_png_base64(
+    buy_schedule: list[MonthMortgageRow]
 ) -> str:
     # Строим график "Проценты vs Тело кредита" по ипотеке
     x = [b.month for b in buy_schedule]
     interest = [b.interest_paid for b in buy_schedule]
     principal = [b.principal_paid for b in buy_schedule]
 
+
     fig = plt.figure()
-    plt.bar(x, interest, label="Проценты")
+    plt.bar(x, interest, label="Оплата процентов ипотеки")
     plt.bar(x, principal, bottom=interest, label="Тело кредита")
     plt.xlabel("Месяц")
     plt.ylabel("Платёж")
     plt.legend()
     plt.tight_layout()
+
+    buf = io.BytesIO()
+    fig.savefig(buf, format="png", dpi=130)
+    plt.close(fig)
+    return _png_bytes_to_base64(buf.getvalue())
+
+'''
+
+def build_mortgage_pie_chart_png_base64(
+    buy_schedule: list[MonthMortgageRow]
+) -> str: 
+    interest = sum(b.interest_paid for b in buy_schedule)
+    principal = sum(b.principal_paid for b in buy_schedule)
+    labels = ['Выплачено процентов', 'Выплачено тела кредита']
+
+    fig, ax = plt.subplots()
+    ax.pie([interest, principal], autopct="%1.1f%%", startangle=90, wedgeprops = {"edgecolor" : "black",
+                      'linewidth': 1,
+                      'antialiased': True}, textprops={
+                          'fontsize': 12,
+                          'fontweight': "bold",
+                      })
+    ax.axis("equal")
+    ax.legend(
+        labels,
+        loc="upper left",
+        bbox_to_anchor=(-0.15, 1.1),   # позиция (x,y) в координатах осей
+     #   borderaxespad=0.0,
+     #   frameon=False,
+    )
+
+
 
     buf = io.BytesIO()
     fig.savefig(buf, format="png", dpi=130)

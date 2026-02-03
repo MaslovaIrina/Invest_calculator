@@ -61,6 +61,7 @@ class MonthMortgageRow(BaseModel):
     buy_balance_change: float
     paid_apart_part: float
     buy_balance: float
+    deposit_change: float
     apart_price: float
 
     net_worth_buy: float  
@@ -78,3 +79,4 @@ class CalcResponse(BaseModel):
     
     chart_main_base64: str
     chart_mortgage_base64: str
+    chart_mortgage_pie_png_base64: str

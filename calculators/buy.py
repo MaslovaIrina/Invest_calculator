@@ -211,6 +211,7 @@ def calc_buy_schedule(req: CalcRequest) -> list[MonthMortgageRow]:
 
         # Остаток добавляем на депозит
         buy_balance += cash_after_housing
+        deposit_change = buy_balance - before_balance
 
         buy_balance_change = buy_balance - before_balance +  apart_price_change
 
@@ -234,6 +235,7 @@ def calc_buy_schedule(req: CalcRequest) -> list[MonthMortgageRow]:
             buy_balance_change=round(buy_balance_change, 2),
             paid_apart_part=round(paid_apart_part, 2),
             buy_balance=round(buy_balance, 2),
+            deposit_change=round(cash_after_housing, 2),
             apart_price=round(apart_price, 2),
 
             net_worth_buy=round(net_worth_buy, 2),
