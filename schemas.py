@@ -10,7 +10,7 @@ class CalcRequest(BaseModel):
     monthly_rent: float = Field(ge=0) # Стоимость аренды в месяц
     yearly_rent_increase: float = Field(ge=0) # На сколько процентов в год увеличивается стоимость аренды
 
-    monthly_free_money: float = Field(ge=0) # 
+    monthly_free_money: float = Field(ge=0) # сколько свободных денег в месяц
     all_free_money: float = Field(ge=0) # Начальный капитал
     invest_percent: float = Field(ge=0) # Под какой процент депозит
 
@@ -80,3 +80,5 @@ class CalcResponse(BaseModel):
     chart_main_base64: str
     chart_mortgage_base64: str
     chart_mortgage_pie_png_base64: str
+    top_text: str
+    warnings: list[str] = []

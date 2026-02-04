@@ -3,6 +3,9 @@ os.environ["MPLBACKEND"] = "Agg"
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import HTMLResponse, FileResponse
+from fastapi.staticfiles import StaticFiles
+from pathlib import Path
 
 from schemas import CalcRequest, CalcResponse
 from calculators.rent import calc_rent
@@ -11,6 +14,13 @@ from calculators.charts import build_main_chart_png_base64, build_mortgage_bar_c
 
 
 app = FastAPI(title="Real Estate Calculator API")
+
+BASE_DIR = Path(__file__).resolve().parent
+HTML_DIR = BASE_DIR / "html_files"
+
+
+#app.mount("/static", StaticFiles(directory=HTML_DIR), name="static")
+
 
 app.add_middleware(
     CORSMiddleware,
@@ -21,12 +31,29 @@ app.add_middleware(
 )
 
 
+
+@app.get("/", response_class=HTMLResponse)
+def home():
+    return FileResponse(HTML_DIR / "home.html")
+
+@app.get("/calc", response_class=HTMLResponse)
+def calc_page():
+    return FileResponse(HTML_DIR / "index.html")
+
+@app.get("/investment", response_class=HTMLResponse)
+def investment_page():
+    print("HIT /investment")
+    return FileResponse(HTML_DIR / "invest_calc.html")
+
+
+
 @app.post("/api/calc", response_model=CalcResponse)
 def calc(req: CalcRequest) -> CalcResponse:
     # 1) расчёты один раз
     rent_schedule = calc_rent(req)
     buy_schedule = calc_buy_schedule(req)
     has_mortgage = any(r.mortgage_payment > 0 for r in buy_schedule)
+    final_warnings = build_warnings(req, rent_schedule, buy_schedule)
 
 
     # 2) графики из готовых расписаний
@@ -49,13 +76,28 @@ def calc(req: CalcRequest) -> CalcResponse:
         difference_final=round(buy_final - rent_final),
         chart_main_base64=chart_main,
         chart_mortgage_base64=chart_mortgage,
-        chart_mortgage_pie_png_base64=chart_mortgage_pie
+        chart_mortgage_pie_png_base64=chart_mortgage_pie,
+        top_text = make_top_text(rent_final, buy_final),
+        warnings = final_warnings
     )
     
 
-@app.get("/")
-def root():
-    return {"status": "ok"}
+
+
+def make_top_text(rent_final, buy_final):
+    if buy_final > rent_final:
+        return 'Покупка выгоднее аренды на ' + str(round(buy_final - rent_final)) + ' руб'
+    else:
+        return 'Аренда выгоднее покупки на ' + str(round(rent_final - buy_final)) + ' руб'
+    
+
+def build_warnings(req, rent_schedule, buy_schedule): # В ДАЛЬНЕЙШЕМ ПЕРЕПРАВИТЬ В ФАЙЛ COMMON 
+    warnings = []
+    if req.monthly_free_money < buy_schedule[0].mortgage_payment:
+        warnings.append('Внимание! Платеж по ипотеке больше ежемесячного бюджета свободных денег.')
+    if req.mortgage_mode == 'none' and req.all_free_money < req.purchase_price:
+        warnings.append('Внимание! Отложенных средств не хватит на данный объект недвижимости. ')
+    return warnings
 
 
 

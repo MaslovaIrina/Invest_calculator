@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Инвестиционный калькулятор</title>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      background: #f7f7f7;
+    }
+
+    .wrap {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 24px 16px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 420px 1fr;
+      gap: 16px;
+    }
+
+    .card {
+      background: #fff;
+      border-radius: 12px;
+      padding: 16px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+    }
+
+    h1, h2 {
+      margin: 0 0 12px;
+    }
+
+    .btn {
+      margin-top: 12px;
+      padding: 10px 16px;
+      border-radius: 10px;
+      border: 0;
+      background: #111;
+      color: #fff;
+      cursor: pointer;
+    }
+
+    .muted {
+      color: #777;
+      font-size: 14px;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <h1>Инвестиции: депозит vs недвижимость</h1>
+    <div class="muted">
+      Поиск порога капитала, начиная с которого вложения в недвижимость становятся выгоднее депозита.
+    </div>
+
+    <div class="grid" style="margin-top:16px;">
+      
+      <!-- ЛЕВАЯ КОЛОНКА: ВВОД -->
+      <div class="card">
+        <h2>Параметры</h2>
+
+        <!-- Здесь позже будут поля ввода -->
+        <div class="muted">Поля ввода будут добавлены позже</div>
+
+        <button class="btn" disabled>
+          Рассчитать
+        </button>
+      </div>
+
+      <!-- ПРАВАЯ КОЛОНКА: РЕЗУЛЬТАТ -->
+      <div class="card">
+        <h2>Результат</h2>
+
+        <div id="top_text" class="muted">
+          Здесь будет вывод результата
+        </div>
+
+        <!-- Место под графи

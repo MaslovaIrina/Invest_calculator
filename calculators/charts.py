@@ -46,8 +46,7 @@ def build_mortgage_bar_chart_png_base64(
     deposit_balance = [b.deposit_change for b in buy_schedule]
     interest = [b.interest_paid for b in buy_schedule]
     principal = [b.principal_paid for b in buy_schedule]
-
-    #deposit_balance = [x if x < req.monthly_free_money else req.monthly_free_money for x in deposit_balance]
+    deposit_balance = [0 if x < 0 else 0 for x in deposit_balance]
 
 
     fig = plt.figure()

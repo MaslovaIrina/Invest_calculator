@@ -168,11 +168,11 @@ def calc_buy_schedule(req: CalcRequest) -> list[MonthMortgageRow]:
 
     # 5) Проверка “не тянет ипотеку” 
     cap = monthly_payment_capacity(req)
-    if planned_payment > 0.0 and planned_payment > cap:
-        raise ValueError(
-            f"Платёж по ипотеке ({planned_payment:.2f}) больше доступного бюджета в месяц ({cap:.2f}). "
-            "Уменьшите платёж/срок/сумму кредита или увеличьте monthly_free_money."
-        )
+    #if planned_payment > 0.0 and planned_payment > cap:
+    #    raise ValueError( # ПЕРЕДЕЛАТЬ ОШИБКУ В ПРЕДУПРЕЖДЕНИЕ !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    #        f"Платёж по ипотеке ({planned_payment:.2f}) больше доступного бюджета в месяц ({cap:.2f}). "
+    #        "Уменьшите платёж/срок/сумму кредита или увеличьте monthly_free_money."
+    #    )
 
     for m in range(1, months_total + 1):
         # --- 1) Стоимость квартиры растёт ---
@@ -206,8 +206,8 @@ def calc_buy_schedule(req: CalcRequest) -> list[MonthMortgageRow]:
         cap = monthly_payment_capacity(req)
         cash_after_housing = cap - mortgage_payment
         
-        if cash_after_housing < -1e-9:
-            raise ValueError("Ипотечный платеж превышает доступный месячный бюджет.")
+        #if cash_after_housing < -1e-9:
+        #    raise ValueError("Ипотечный платеж превышает доступный месячный бюджет.")
 
         # Остаток добавляем на депозит
         buy_balance += cash_after_housing

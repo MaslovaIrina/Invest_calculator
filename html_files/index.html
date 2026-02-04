@@ -69,7 +69,16 @@
       max-height: 360px;
       object-fit: contain;
     }
-
+    .warningBox {
+      background: #fff3cd;
+      border: 1px solid #ffeeba;
+      color: #856404;
+      padding: 10px 12px;
+      border-radius: 10px;
+      font-weight: 600;
+      margin-top: 10px;
+    }
+    .warningItem { margin: 6px 0; }
   </style>
 </head>
 
@@ -168,6 +177,8 @@
               <div class="metric"><b>Итог: покупка</b><div id="buy_final">—</div></div>
               <div class="metric"><b>Разница (покупка − аренда)</b><div id="diff_final">—</div></div>
             </div>
+            <div id="top_text" style="padding-top:19px; margin-top:0; font-weight:700; border-top:1px solid #ddd;">—</div>
+            <div id="warnings" style="display:none; margin-top:10px;"></div>
           </div>
 
           <!-- График #1 сверху -->
@@ -279,6 +290,7 @@
         el("rent_final").textContent = Number(data.rent_final_balance).toFixed(0);
         el("buy_final").textContent = Number(data.buy_final_balance).toFixed(0);
         el("diff_final").textContent = Number(data.difference_final).toFixed(0);
+        el("top_text").textContent = String(data.top_text);
 
         // график #1 (сверху)
         el("chart_main_img").src = "data:image/png;base64," + data.chart_main_base64;
@@ -291,7 +303,20 @@
           el("chart_mortgage_img").src = "data:image/png;base64," + data.chart_mortgage_base64;
 
           el("chart_mortgage_pie_img").src = "data:image/png;base64," + data.chart_mortgage_pie_png_base64;
-}
+          }
+        const warningsEl = el("warnings");
+        const warnings = data.warnings || [];
+
+        if (warnings.length > 0) {
+          warningsEl.style.display = "block";
+          warningsEl.className = "warningBox";
+          warningsEl.innerHTML = warnings.map(w => `<div class="warningItem">⚠️ ${w}</div>`).join("");
+        } else {
+          warningsEl.style.display = "none";
+          warningsEl.innerHTML = "";
+          warningsEl.className = "";
+        }
+
 
 
         // Таблица аренды
