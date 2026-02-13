@@ -2,31 +2,129 @@
 <html lang="ru">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Калькуляторы</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Real Estate Calculator</title>
+
   <style>
-    body { font-family: Arial, sans-serif; margin: 0; padding: 0; }
-    .wrap { max-width: 1200px; margin: 0 auto; padding: 40px 16px; }
-    .card { border: 1px solid #ddd; border-radius: 12px; padding: 20px; }
+    body { margin: 0; font-family: Arial, sans-serif; background: #f7f7f7; color: #111; }
+    .wrap { max-width: 980px; margin: 0 auto; padding: 32px 16px; }
+
+    .header {
+      background: #fff;
+      border-radius: 14px;
+      padding: 18px 18px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+      margin-bottom: 16px;
+    }
+    .header h1 { margin: 0 0 8px; font-size: 22px; }
+    .header p { margin: 0; color: #666; line-height: 1.35; }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 14px;
+    }
+    @media (max-width: 780px) {
+      .grid { grid-template-columns: 1fr; }
+    }
+
+    .card {
+      align-items: center; 
+      background: #fff;
+      border-radius: 14px;
+      padding: 16px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      min-height: 190px;
+    }
+    .card h2 { margin: 0; font-size: 18px; }
+    .desc { color: #444; line-height: 1.42; }
+    .desc p { margin: 0 0 8px; }
+    .desc ul { margin: 6px 0 0 18px; padding: 0; color: #555; }
+    .desc li { margin: 4px 0; }
+
     .btn {
-      display: inline-block;
-      margin-top: 14px;
-      padding: 10px 16px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 10px 14px;
       border-radius: 10px;
-      border: 0;
       background: #111;
       color: #fff;
-      cursor: pointer;
       text-decoration: none;
+      font-weight: 700;
+      width: fit-content;
     }
+    .btn:hover { opacity: 0.9; }
+
+    .muted { color: #777; font-size: 13px; }
   </style>
 </head>
+
 <body>
   <div class="wrap">
-    <div class="card">
-      <div>Выберите калькулятор, чтобы сравнить покупку и аренду квартиры.</div>
-      <a class="btn" href="/calc">Открыть калькулятор для жизни</a>
-      <a class="btn" href="/investment">Открыть калькулятор для инвестиции</a>
+
+    <div class="header">
+      <h1>Real Estate Calculator</h1>
+      <p>
+        Здесь собраны два калькулятора: один помогает принять решение для проживания, второй — сравнить инвестиционные подходы.
+        Выберите нужный сценарий и получите расчёт с итоговыми цифрами и графиками.
+      </p>
+    </div>
+
+    <div class="grid">
+
+      <!-- Блок 1 -->
+      <div class="card">
+        <h2>Аренда vs Покупка</h2>
+        <a class="btn" href="/calc">Открыть калькулятор</a>
+
+        <div class="desc">
+          <p>
+            Этот калькулятор отвечает на практический вопрос: что выгоднее — продолжать арендовать жильё
+            или купить квартиру для проживания.
+          </p>
+          <p>
+            Демонстрирует итоговый капитал в обоих сценариях и разницу между результатами. Данный калькулятор оптимален для краткосрочных расчетов и сравнений, поскольку не учитывает экономические аспекты.
+          </p>
+          <ul>
+            <li>учитывает годовые рост аренды и стоимости недвижимости</li>
+            <li>учитывает депозит/инвестиции</li>
+            <li>может учитывать ипотеку и структуру платежа</li>
+          </ul>
+          <div class="muted" style="margin-top:8px;">
+            Подходит, если стоит выбор: покупать сейчас или пока арендовать.
+          </div>
+        </div>
+      </div>
+
+      <!-- Блок 2 -->
+      <div class="card">
+        <h2>Инвестиции: депозит vs вложение недвижимость</h2>
+        <a class="btn" href="/investment">Открыть калькулятор</a>
+
+        <div class="desc">
+          <p>
+            Данный калькулятор рассматривает недвижимость как инвестицию и помогает понять, когда покупка актива начинает
+            выигрывать у депозита.
+          </p>
+          <p>
+            Идея простая: на фиксированном горизонте (например, 10 лет) ищется порог стартового капитала, начиная с которого
+            стратегия “недвижимость” даёт больший итоговый капитал, чем стратегия “депозит”.
+          </p>
+          <ul>
+            <li>помогает оценить “с какой суммы имеет смысл заходить в недвижимость”</li>
+            <li>даёт понятный ответ без ручного перебора вариантов</li>
+            <li>удобен, если ты выбираешь инструмент инвестирования</li>
+          </ul>
+          <div class="muted" style="margin-top:8px;">
+            Подходит, если ты думаешь: «оставить на депозите или вложиться в объект».
+          </div>
+        </div>
+      </div>
+
     </div>
   </div>
 </body>

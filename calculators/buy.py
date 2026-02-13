@@ -2,17 +2,13 @@
 import math
 from typing import Tuple
 
-from schemas import CalcRequest, MonthMortgageRow
+from schemas_living import CalcRequest, MonthMortgageRow
 from calculators.common import monthly_rate_from_percent
 
 
 # ----------------------------
 # Helpers
 # ----------------------------
-
-def monthly_growth_from_yearly_linear(yearly_percent: float) -> float:
-    """Линейный месячный рост: yearly% / 12."""
-    return (yearly_percent / 100.0) / 12.0
 
 
 def apply_deposit_interest(balance: float, monthly_rate: float) -> float:
@@ -123,13 +119,6 @@ def apply_mortgage_month(loan_balance: float, r: float, payment: float) -> Tuple
     return float(interest_paid), float(principal_paid), float(new_loan), float(effective_payment)
 
 
-def monthly_payment_capacity(req: CalcRequest) -> float:
-    """
-    Сколько пользователь реально может отдать в месяц на ипотеку/инвестирование.
-    По твоему правилу: платеж должен укладываться в бюджет.
-    """
-    cap = float(req.monthly_free_money) - float(req.monthly_unexpected_expenses)
-    return cap
 
 
 # ----------------------------
@@ -152,7 +141,7 @@ def calc_buy_schedule(req: CalcRequest) -> list[MonthMortgageRow]:
 
     # 3) Ставки и рост цены квартиры
     deposit_r = monthly_rate_from_percent(req.invest_percent)
-    apart_growth_r = monthly_growth_from_yearly_linear(req.yearly_apart_price_change)
+    apart_growth_r = monthly_rate_from_percent(req.yearly_apart_price_change)
 
     apart_price = purchase_price
 
@@ -166,13 +155,6 @@ def calc_buy_schedule(req: CalcRequest) -> list[MonthMortgageRow]:
     months_of_mortgage = choose_mortgage_months(req, loan_balance, mortgage_r, months_total)
     planned_payment = choose_mortgage_payment(req, loan_balance, mortgage_r, months_of_mortgage)
 
-    # 5) Проверка “не тянет ипотеку” 
-    cap = monthly_payment_capacity(req)
-    #if planned_payment > 0.0 and planned_payment > cap:
-    #    raise ValueError( # ПЕРЕДЕЛАТЬ ОШИБКУ В ПРЕДУПРЕЖДЕНИЕ !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    #        f"Платёж по ипотеке ({planned_payment:.2f}) больше доступного бюджета в месяц ({cap:.2f}). "
-    #        "Уменьшите платёж/срок/сумму кредита или увеличьте monthly_free_money."
-    #    )
 
     for m in range(1, months_total + 1):
         # --- 1) Стоимость квартиры растёт ---
@@ -203,7 +185,7 @@ def calc_buy_schedule(req: CalcRequest) -> list[MonthMortgageRow]:
         buy_balance = apply_deposit_interest(buy_balance, deposit_r)
 
         # Денежный поток месяца: сколько осталось после ипотеки и unexpected
-        cap = monthly_payment_capacity(req)
+        cap = req.monthly_free_money
         cash_after_housing = cap - mortgage_payment
         
         #if cash_after_housing < -1e-9:

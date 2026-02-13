@@ -15,7 +15,6 @@ class CalcRequest(BaseModel):
     invest_percent: float = Field(ge=0) # Под какой процент депозит
 
     yearly_apart_price_change: float # На сколько процентов в год меняется цена недвижимости
-    monthly_unexpected_expenses: float = Field(ge=0) # Непредвиденные расчеты в месяц
 
     mortgage_mode: Literal["none", "full_term", "fixed_term", "by_budget"] = "none"
     ipotek_percent: Optional[float] = Field(default=None, ge=0)

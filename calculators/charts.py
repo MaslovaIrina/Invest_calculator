@@ -7,7 +7,7 @@ matplotlib.use("Agg")  # важно: до pyplot
 
 import matplotlib.pyplot as plt
 
-from schemas import MonthRentaRow, MonthMortgageRow
+from schemas_living import MonthRentaRow, MonthMortgageRow
 
 
 def _png_bytes_to_base64(png: bytes) -> str:
@@ -46,7 +46,7 @@ def build_mortgage_bar_chart_png_base64(
     deposit_balance = [b.deposit_change for b in buy_schedule]
     interest = [b.interest_paid for b in buy_schedule]
     principal = [b.principal_paid for b in buy_schedule]
-    deposit_balance = [0 if x < 0 else 0 for x in deposit_balance]
+    deposit_balance = [0 if x < 0 else x for x in deposit_balance]
 
 
     fig = plt.figure()

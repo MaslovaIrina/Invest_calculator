@@ -1,4 +1,4 @@
-from schemas import CalcRequest, MonthRentaRow
+from schemas_living import CalcRequest, MonthRentaRow
 from calculators.common import monthly_rate_from_percent
 
 
@@ -25,7 +25,6 @@ def calc_rent(req: CalcRequest) -> list[MonthRentaRow]:
             req.monthly_free_money
             + invest_profit
             - monthly_rent
-            - req.monthly_unexpected_expenses
         )
         invest_balance += balance_change
 

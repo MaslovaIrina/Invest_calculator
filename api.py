@@ -7,10 +7,15 @@ from fastapi.responses import HTMLResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
 from pathlib import Path
 
-from schemas import CalcRequest, CalcResponse
+from schemas_living import CalcRequest, CalcResponse
 from calculators.rent import calc_rent
 from calculators.buy import calc_buy_schedule
 from calculators.charts import build_main_chart_png_base64, build_mortgage_bar_chart_png_base64, build_mortgage_pie_chart_png_base64
+from calculators.common import build_warnings
+
+
+from schemas_invest import InvestRequest, InvestResponse
+#from calculators.invest import find_break_even_capital
 
 
 app = FastAPI(title="Real Estate Calculator API")
@@ -91,13 +96,6 @@ def make_top_text(rent_final, buy_final):
         return 'Аренда выгоднее покупки на ' + str(round(rent_final - buy_final)) + ' руб'
     
 
-def build_warnings(req, rent_schedule, buy_schedule): # В ДАЛЬНЕЙШЕМ ПЕРЕПРАВИТЬ В ФАЙЛ COMMON 
-    warnings = []
-    if req.monthly_free_money < buy_schedule[0].mortgage_payment:
-        warnings.append('Внимание! Платеж по ипотеке больше ежемесячного бюджета свободных денег.')
-    if req.mortgage_mode == 'none' and req.all_free_money < req.purchase_price:
-        warnings.append('Внимание! Отложенных средств не хватит на данный объект недвижимости. ')
-    return warnings
 
 
 
