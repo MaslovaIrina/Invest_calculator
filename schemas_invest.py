@@ -14,9 +14,9 @@ class InvestRequest(BaseModel):
     yearly_apart_price_change: float # На сколько процентов в год меняется цена недвижимости во вторичке
     new_building: Literal["none", "yes"] = "none" # Новостройка?
     year_new_buildeing_ready: Optional[float] = Field(default=None, ge=0) # Через сколько будет готов объект
-    yearly_new_building_price_change: Optional[float] = Field(default=None, ge=0) # Ожидаемое подорожание новостройки за период строительства, проценты
+    new_building_price_change: Optional[float] = Field(default=None, ge=0) # Ожидаемое подорожание новостройки за период строительства, проценты
 
-    mortgage_mode: Literal["none", "full_term", "fixed_term", "by_budget"] = "none"
+    mortgage_mode: Literal["none", "fixed_term", "by_budget"] = "none"
     ipotek_percent: Optional[float] = Field(default=None, ge=0)
     mortgage_term_years: Optional[float] = Field(default=None, gt=0)           # для fixed_term
     mortgage_monthly_budget: Optional[float] = Field(default=None, ge=0)   

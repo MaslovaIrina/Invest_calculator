@@ -1,69 +1,187 @@
 <!doctype html>
 <html lang="ru">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Инвестиционный калькулятор</title>
-
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Real Estate Calculator</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 0;
-      background: #f7f7f7;
-    }
+    body { font-family: Arial, sans-serif; margin: 0; background: #fafafa; }
+    .page { max-width: 1800px; margin: 0 auto; padding: 24px 16px; }
+    h1 { margin: 0 0 16px; }
 
-    .wrap {
-      max-width: 1100px;
+    .layout { display: grid; grid-template-columns: 560px 1fr; gap: 16px; align-items: start; }
+    @media (max-width: 980px) { .layout { grid-template-columns: 1fr; } }
+
+    .card { background:#fff; padding:14px; border:1px solid #ddd; border-radius:10px; margin-bottom:12px; }
+
+    label { display:block; margin-top: 12px; font-size: 14px; }
+    input, select { width:100%; padding:10px; margin-top:6px; box-sizing:border-box; border:1px solid #ccc; border-radius:8px; }
+
+    button { width:100%; margin-top:16px; padding:12px 14px; border:0; border-radius:10px; cursor:pointer; background:#111; color:#fff; font-weight:600; }
+    button:hover { opacity: 0.92; }
+
+    .err { color:#b00020; margin-top:10px; }
+
+    .row { display:flex; gap:12px; flex-wrap:wrap; }
+    .metric { flex:1 1 220px; padding:10px; border:1px solid #eee; border-radius:10px; background:#fff; }
+    .metric b { display:block; margin-bottom:6px; }
+
+    .placeholder { padding:18px; border:1px dashed #ddd; border-radius:10px; background:#fff; color:#555; }
+
+    details { border:1px solid #eee; border-radius:10px; padding:10px 12px; background:#fff; }
+    details + details { margin-top: 10px; }
+    summary { cursor:pointer; font-weight:700; list-style:none; }
+    summary::-webkit-details-marker { display:none; }
+
+    .tableWrap { margin-top:10px; max-height:420px; overflow:auto; border:1px solid #eee; border-radius:10px; }
+    table { width:100%; border-collapse:collapse; }
+    th, td { padding:8px; border-bottom:1px solid #f0f0f0; text-align:left; }
+    th { border-bottom:1px solid #ddd; position:sticky; top:0; background:#fff; }
+
+    .small { font-size:12px; opacity:0.8; margin-top:6px; }
+
+    /* Ограничение размера графиков */
+    .chartImg {
+      width: 100%;
+      max-width: 1000px;
+      max-height: 360px;
+      object-fit: contain;
+      display: block;
       margin: 0 auto;
-      padding: 24px 16px;
-    }
-
-    .grid {
-      display: grid;
-      grid-template-columns: 420px 1fr;
-      gap: 16px;
-    }
-
-    .card {
-      background: #fff;
-      border-radius: 12px;
-      padding: 16px;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
-    }
-
-    h1, h2 {
-      margin: 0 0 12px;
-    }
-
-    .btn {
-      margin-top: 12px;
-      padding: 10px 16px;
+      border: 1px solid #eee;
       border-radius: 10px;
-      border: 0;
-      background: #111;
-      color: #fff;
-      cursor: pointer;
+      background: #fff;
     }
 
-    .muted {
-      color: #777;
-      font-size: 14px;
+    @media (min-width: 981px) {
+      .leftColumn { position: sticky; top: 16px; }
     }
+    .mortgageChartsRow {
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+      flex-wrap: wrap; /* чтобы на узком экране переносилось */
+    }
+
+    .mortgageChartsRow .chartImg {
+      width: 100%;
+      max-width: 490px;  /* чтобы 2 влезали рядом */
+      max-height: 360px;
+      object-fit: contain;
+    }
+    .warningBox {
+      background: #fff3cd;
+      border: 1px solid #ffeeba;
+      color: #856404;
+      padding: 10px 12px;
+      border-radius: 10px;
+      font-weight: 600;
+      margin-top: 10px;
+    }
+    .warningItem { margin: 6px 0; }
   </style>
 </head>
 
 <body>
-  <div class="wrap">
+  <div class="page">
     <h1>Инвестиции: депозит vs недвижимость</h1>
-    <div class="muted">
+    <div class="layout">
       Поиск порога капитала, начиная с которого вложения в недвижимость становятся выгоднее депозита.
     </div>
 
-    <div class="grid" style="margin-top:16px;">
-      
+    <div class="layout">
+      <div class="leftColumn">
       <!-- ЛЕВАЯ КОЛОНКА: ВВОД -->
-      <div class="card">
-        <h2>Параметры</h2>
+        <div class="card">
+          <h2>Параметры</h2>
+          <div style="margin-top:10px; font-weight:600;">Общие</div>
+            <label>На сколько лет расчет (years_of_calculation)
+              <input id="years_of_calculation" type="number" step="1" value="10">
+            </label>
+            <label>Начальный капитал (all_free_money)
+              <input id="all_free_money" type="number" step="1000" value="6000000">
+            </label>
+
+
+            <hr style="border:none; border-top:1px solid #eee; margin:14px 0;">
+            <div style="margin-top:2px; font-weight:600;">Депозит</div>
+            <label>Доходность депозита/инвестиций, % годовых (invest_percent)
+              <input id="invest_percent" type="number" step="0.5" value="12">
+            </label>
+            <label> Пополнение депозита 
+              <select id="deposit_mode">
+                <option value="none" selected>без пополнения</option>
+                <option value="every_month" >каждый месяц</option>
+                <option value="every_year" >каждый год</option>
+              </select>
+            </label>
+            <div id="deposit_common" style="display:none; margin-top:12px;">
+              <label>Сумма пополнения депозита
+                <input id="deposit_refill_amount" type="number" step="1000" value="100000">
+              </label>
+            </div>
+            <hr style="border:none; border-top:1px solid #eee; margin:14px 0;">
+
+            <div style="margin-top:2px; font-weight:600;">Покупка</div>
+            <label>Цена объекта (purchase_price)
+              <input id="purchase_price" type="number" step="500000" value="10000000">
+            </label>
+            <label>Рост цены в год, % (yearly_apart_price_change)
+              <input id="yearly_apart_price_change" type="number" step="0.2" value="7">
+            </label>
+
+            <label> Является ли вложением в новостройку?
+              <select id="new_building_mode">
+                <option value="none" selected>нет</option>
+                <option value="yes" >да</option>
+              </select>
+            </label>
+            <div id="new_building_common" style="display:none; margin-top:12px;">
+              <label>Через сколько лет сдача
+                <input id="year_new_buildeing_ready" type="number" step="1" value="3">
+              </label>
+              <label>Ожидаемое подорожание новостройки после сдачи
+                <input id="new_building_price_change" type="number" step="1" value="30">
+              </label>
+
+
+            </div>
+
+            <label>Режим ипотеки (mortgage_mode)
+              <select id="mortgage_mode">
+                <option value="none" selected>без ипотеки</option>
+                <option value="fixed_term">на фиксированный срок</option>
+                <option value="by_budget">по ежемесячному бюджету</option>
+              </select>
+            </label>
+
+            <div id="mortgage_common" style="display:none; margin-top:12px;">
+              <label>Ставка по ипотеке, % годовых (ipotek_percent)
+                <input id="ipotek_percent" type="number" step="0.5" value="18">
+              </label>
+            </div>
+
+            <div id="mortgage_fixed_term" style="display:none; margin-top:12px;">
+              <label>Срок ипотеки, лет (mortgage_term_years)
+                <input id="mortgage_term_years" type="number" step="1" value="10">
+              </label>
+            </div>
+
+            <div id="mortgage_budget" style="display:none; margin-top:12px;">
+              <label>Бюджет платежа в месяц (mortgage_monthly_budget)
+                <input id="mortgage_monthly_budget" type="number" step="1000" value="80000">
+              </label>
+            </div>
+
+
+            <hr style="border:none; border-top:1px solid #eee; margin:14px 0;">
+
+
+            <button id="btn">Посчитать</button>
+            <div id="status" class="err"></div>
+          </div>
+        </div>
+      </div>
 
         <!-- Здесь позже будут поля ввода -->
         <div class="muted">Поля ввода будут добавлены позже</div>
@@ -81,4 +199,65 @@
           Здесь будет вывод результата
         </div>
 
-        <!-- Место под графи
+        
+  <script>
+    const API_CALC_URL = "http://127.0.0.1:8000/investment";
+    const el = (id) => document.getElementById(id);
+
+    function toggleMortgageBlocks() {
+      const mode = el("mortgage_mode").value;
+      el("mortgage_common").style.display = mode !== "none" ? "block" : "none";
+      el("mortgage_fixed_term").style.display = mode === "fixed_term" ? "block" : "none";
+      el("mortgage_budget").style.display = mode === "by_budget" ? "block" : "none";
+    }
+
+    function toggle_New_Building_Blocks() {
+      const new_building_mode = el("new_building_mode").value;
+      el("new_building_common").style.display = new_building_mode !== "none" ? "block" : "none";
+    }
+
+    function toggleDepositBlocks() {
+      const deposit_mode = el("deposit_mode").value;
+      el("deposit_common").style.display = deposit_mode !== "none" ? "block" : "none";
+    }
+
+    el("mortgage_mode").addEventListener("change", toggleMortgageBlocks);
+      toggleMortgageBlocks();
+    
+    el("deposit_mode").addEventListener("change", toggleDepositBlocks);
+      toggleDepositBlocks();
+    
+    el("new_building_mode").addEventListener("change", toggle_New_Building_Blocks);
+      toggle_New_BuildingBlocks();
+
+    const payload = {
+        years_of_calculation: Number(el("years_of_calculation").value),
+        purchase_price: Number(el("purchase_price").value),
+        yearly_apart_price_change: Number(el("yearly_apart_price_change").value),
+        new_building: new_building_mode,
+        year_new_building_ready: new_building_mode  === "yes" ? Number(el("year_new_building_ready").value) : 0,
+        new_building_price_change: new_building_mode  === "yes" ? Number(el("new_building_price_change").value) : 0,
+
+
+
+        all_free_money: Number(el("all_free_money").value),
+        invest_percent: Number(el("invest_percent").value),
+
+        mortgage_mode: mode,
+        ipotek_percent: mode !== "none" ? Number(el("ipotek_percent").value) : null,
+        mortgage_term_years: mode === "fixed_term" ? Number(el("mortgage_term_years").value) : null,
+        mortgage_monthly_budget: mode === "by_budget" ? Number(el("mortgage_monthly_budget").value || 0) : null,
+
+        deposit_refill: deposit_mode,
+        deposit_refill_amount: deposit_mode  !== "none" ? Number(el("deposit_refill_amount").value) : 0,
+        
+      };
+
+
+
+
+
+    </script>
+
+
+</body>

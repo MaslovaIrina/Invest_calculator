@@ -47,7 +47,6 @@ def calc_page():
 
 @app.get("/investment", response_class=HTMLResponse)
 def investment_page():
-    print("HIT /investment")
     return FileResponse(HTML_DIR / "invest_calc.html")
 
 
