@@ -33,7 +33,7 @@ def calc_months_by_budget(loan: float, r: float, monthly_budget: float) -> int:
     return int(math.ceil(n))
 
 
-def choose_mortgage_months(req: CalcRequest, loan: float, r: float, months_total: int) -> int:
+def choose_mortgage_months(req, loan: float, r: float, months_total: int) -> int:
     """
     mortgage_mode:
       - none       : ипотеки нет
@@ -63,7 +63,7 @@ def choose_mortgage_months(req: CalcRequest, loan: float, r: float, months_total
 
 
 
-def choose_mortgage_payment(req: CalcRequest, loan: float, r: float, months_of_mortgage: int) -> float:
+def choose_mortgage_payment(req, loan: float, r: float, months_of_mortgage: int) -> float:
     """
     Выбираем месячный платеж:
       - by_budget  : платеж = mortgage_monthly_budget (или monthly_free_money)

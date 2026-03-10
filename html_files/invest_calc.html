@@ -183,8 +183,6 @@
         </div>
       </div>
 
-        <!-- Здесь позже будут поля ввода -->
-        <div class="muted">Поля ввода будут добавлены позже</div>
 
         <button class="btn" disabled>
           Рассчитать
@@ -204,60 +202,152 @@
     const API_CALC_URL = "http://127.0.0.1:8000/investment";
     const el = (id) => document.getElementById(id);
 
+    // -----------------------------
+    // Toggle blocks
+    // -----------------------------
+
     function toggleMortgageBlocks() {
       const mode = el("mortgage_mode").value;
-      el("mortgage_common").style.display = mode !== "none" ? "block" : "none";
-      el("mortgage_fixed_term").style.display = mode === "fixed_term" ? "block" : "none";
-      el("mortgage_budget").style.display = mode === "by_budget" ? "block" : "none";
-    }
 
-    function toggle_New_Building_Blocks() {
-      const new_building_mode = el("new_building_mode").value;
-      el("new_building_common").style.display = new_building_mode !== "none" ? "block" : "none";
+      el("mortgage_common").style.display =
+        mode !== "none" ? "block" : "none";
+
+      el("mortgage_fixed_term").style.display =
+        mode === "fixed_term" ? "block" : "none";
+
+      el("mortgage_budget").style.display =
+        mode === "by_budget" ? "block" : "none";
     }
 
     function toggleDepositBlocks() {
-      const deposit_mode = el("deposit_mode").value;
-      el("deposit_common").style.display = deposit_mode !== "none" ? "block" : "none";
+      const depositMode = el("deposit_mode").value;
+
+      el("deposit_common").style.display =
+        depositMode !== "none" ? "block" : "none";
     }
 
-    el("mortgage_mode").addEventListener("change", toggleMortgageBlocks);
-      toggleMortgageBlocks();
-    
-    el("deposit_mode").addEventListener("change", toggleDepositBlocks);
-      toggleDepositBlocks();
-    
-    el("new_building_mode").addEventListener("change", toggle_New_Building_Blocks);
-      toggle_New_BuildingBlocks();
+    function toggleNewBuildingBlocks() {
+      const newBuildingMode = el("new_building_mode").value;
 
-    const payload = {
+      el("new_building_common").style.display =
+        newBuildingMode === "yes" ? "block" : "none";
+    }
+
+    // -----------------------------
+    // Build payload 
+    // -----------------------------
+
+    function buildPayload() {
+      const depositMode = el("deposit_mode").value;
+      const mortgageMode = el("mortgage_mode").value;
+      const newBuildingMode = el("new_building_mode").value;
+
+      return {
         years_of_calculation: Number(el("years_of_calculation").value),
-        purchase_price: Number(el("purchase_price").value),
-        yearly_apart_price_change: Number(el("yearly_apart_price_change").value),
-        new_building: new_building_mode,
-        year_new_building_ready: new_building_mode  === "yes" ? Number(el("year_new_building_ready").value) : 0,
-        new_building_price_change: new_building_mode  === "yes" ? Number(el("new_building_price_change").value) : 0,
-
-
-
         all_free_money: Number(el("all_free_money").value),
         invest_percent: Number(el("invest_percent").value),
 
-        mortgage_mode: mode,
-        ipotek_percent: mode !== "none" ? Number(el("ipotek_percent").value) : null,
-        mortgage_term_years: mode === "fixed_term" ? Number(el("mortgage_term_years").value) : null,
-        mortgage_monthly_budget: mode === "by_budget" ? Number(el("mortgage_monthly_budget").value || 0) : null,
+        deposit_refill: depositMode,
+        deposit_refill_amount:
+          depositMode !== "none"
+            ? Number(el("deposit_refill_amount").value)
+            : null,
 
-        deposit_refill: deposit_mode,
-        deposit_refill_amount: deposit_mode  !== "none" ? Number(el("deposit_refill_amount").value) : 0,
-        
+        purchase_price: Number(el("purchase_price").value),
+        yearly_apart_price_change: Number(el("yearly_apart_price_change").value),
+
+        new_building: newBuildingMode,
+        year_new_buildeing_ready:
+          newBuildingMode === "yes"
+            ? Number(el("year_new_buildeing_ready").value)
+            : null,
+
+        new_building_price_change:
+          newBuildingMode === "yes"
+            ? Number(el("new_building_price_change").value)
+            : null,
+
+        mortgage_mode: mortgageMode,
+        ipotek_percent:
+          mortgageMode !== "none"
+            ? Number(el("ipotek_percent").value)
+            : null,
+
+        mortgage_term_years:
+          mortgageMode === "fixed_term"
+            ? Number(el("mortgage_term_years").value)
+            : null,
+
+        mortgage_monthly_budget:
+          mortgageMode === "by_budget"
+            ? Number(el("mortgage_monthly_budget").value)
+            : null,
+
+        k_min: 0
       };
+    }
 
+    // -----------------------------
+    // API call
+    // -----------------------------
 
+    async function calculate() {
+      try {
+        el("status").textContent = "";
 
+        const payload = buildPayload();
 
+        const response = await fetch(API_CALC_URL, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify(payload)
+        });
 
-    </script>
+        if (!response.ok) {
+          const text = await response.text();
+          throw new Error(text);
+        }
+
+        const data = await response.json();
+        showResult(data);
+
+      } catch (error) {
+        el("status").textContent = "Ошибка: " + error.message;
+      }
+    }
+
+    // -----------------------------
+    // Render result
+    // -----------------------------
+
+    function showResult(data) {
+      if (data.found) {
+        el("top_text").textContent =
+          "Порог капитала: " +
+          Number(data.break_even_capital).toFixed(0) +
+          " руб.";
+      } else {
+        el("top_text").textContent = data.message;
+      }
+    }
+
+    // -----------------------------
+    // Event listeners
+    // -----------------------------
+
+    el("mortgage_mode").addEventListener("change", toggleMortgageBlocks);
+    el("deposit_mode").addEventListener("change", toggleDepositBlocks);
+    el("new_building_mode").addEventListener("change", toggleNewBuildingBlocks);
+    el("btn").addEventListener("click", calculate);
+
+    // Initial state
+    toggleMortgageBlocks();
+    toggleDepositBlocks();
+    toggleNewBuildingBlocks();
+
+  </script>
 
 
 </body>

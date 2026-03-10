@@ -15,7 +15,7 @@ from calculators.common import build_warnings
 
 
 from schemas_invest import InvestRequest, InvestResponse
-#from calculators.invest import find_break_even_capital
+from calculators.invest import find_break_even_capital
 
 
 app = FastAPI(title="Real Estate Calculator API")
@@ -85,7 +85,15 @@ def calc(req: CalcRequest) -> CalcResponse:
         warnings = final_warnings
     )
     
+@app.post("/investment", response_model=InvestResponse)
+def investment(req: InvestRequest) -> InvestResponse:
+    result = find_break_even_capital(req)
 
+    return InvestResponse(
+        break_even_capital=result,
+        found=result is not None,
+        message="Порог найден" if result else "В заданном диапазоне не найден"
+    )
 
 
 def make_top_text(rent_final, buy_final):
