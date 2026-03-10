@@ -117,3 +117,167 @@ def build_mortgage_pie_chart_png_base64(
     fig.savefig(buf, format="png", dpi=130)
     plt.close(fig)
     return _png_bytes_to_base64(buf.getvalue())
+
+def build_invest_profit_chart_png_base64(
+        results: list[dict],
+        selected_start_month: int | None,
+        deposit_path: list[float],
+    ) -> str:
+    if not results:
+        return ""
+
+    fig = plt.figure(figsize=(11, 5.5))
+
+    # Все линии покупки
+    purchase_label_used = False
+    for item in results:
+        schedule = item.get("schedule") or []
+        if len(schedule) < 2:
+            continue
+
+        x_buy = [row["calendar_month"] for row in schedule]
+        y_buy = [row["buy_profit"] for row in schedule]
+
+        is_selected = (
+            selected_start_month is not None
+            and item["start_month"] == selected_start_month
+        )
+
+        label = None
+        if not purchase_label_used:
+            label = "Покупка"
+            purchase_label_used = True
+
+        if is_selected:
+            plt.plot(
+                x_buy,
+                y_buy,
+                color="tab:orange",
+                linewidth=2.8,
+                alpha=1.0,
+                label=label
+            )
+        else:
+            plt.plot(
+                x_buy,
+                y_buy,
+                color="tab:orange",
+                linewidth=1.4,
+                alpha=0.45,
+                label=label
+            )
+
+    # Линия депозита
+    if deposit_path:
+        x_dep = list(range(len(deposit_path)))
+        y_dep = [value - deposit_path[0] for value in deposit_path]
+
+        plt.plot(
+            x_dep,
+            y_dep,
+            color="tab:blue",
+            linewidth=3.0,
+            alpha=1.0,
+            label="Депозит"
+    )
+
+    plt.axhline(0, color="black", linewidth=0.8, alpha=0.5)
+    plt.xlabel("Календарный месяц расчёта")
+    plt.ylabel("Накопленная прибыль")
+    plt.title("Прибыль депозита и сценариев покупки")
+    plt.legend()
+    plt.grid(True, alpha=0.2)
+    plt.tight_layout()
+
+    buf = io.BytesIO()
+    fig.savefig(buf, format="png", dpi=130)
+    plt.close(fig)
+    return _png_bytes_to_base64(buf.getvalue())
+
+
+
+def build_invest_capital_chart_png_base64(results: list[dict], selected_start_month: int | None) -> str:
+    if not results:
+        return ""
+
+    fig = plt.figure(figsize=(11, 5.5))
+
+    # Все линии покупки: общий капитал
+    purchase_label_used = False
+    for item in results:
+        schedule = item.get("schedule") or []
+        if len(schedule) < 2:
+            continue
+
+        x_buy = [row["calendar_month"] for row in schedule]
+        y_buy = [row["net_worth_buy"] for row in schedule]
+
+        is_selected = (
+            selected_start_month is not None
+            and item["start_month"] == selected_start_month
+        )
+
+        label = None
+        if not purchase_label_used:
+            label = "Покупка"
+            purchase_label_used = True
+
+        if is_selected:
+            plt.plot(
+                x_buy,
+                y_buy,
+                color="tab:orange",
+                linewidth=2.8,
+                alpha=1.0,
+                label=label
+            )
+        else:
+            plt.plot(
+                x_buy,
+                y_buy,
+                color="tab:orange",
+                linewidth=1.4,
+                alpha=0.45,
+                label=label
+            )
+
+    # Общий капитал депозита
+    base_result = None
+    if selected_start_month is not None:
+        for item in results:
+            if item["start_month"] == selected_start_month and item.get("schedule"):
+                base_result = item
+                break
+
+    if base_result is None:
+        for item in results:
+            if item.get("schedule"):
+                base_result = item
+                break
+
+    if base_result is not None:
+        start_capital = float(base_result["start_capital"])
+        x_dep = [row["calendar_month"] for row in base_result["schedule"]]
+        y_dep = [start_capital + row["deposit_profit"] for row in base_result["schedule"]]
+
+        plt.plot(
+            x_dep,
+            y_dep,
+            color="tab:blue",
+            linewidth=3.0,
+            alpha=1.0,
+            label="Депозит"
+        )
+
+    plt.xlabel("Календарный месяц расчёта")
+    plt.ylabel("Общий капитал")
+    plt.title("Общий капитал депозита и сценариев покупки")
+    plt.legend()
+    plt.grid(True, alpha=0.2)
+    plt.tight_layout()
+
+    buf = io.BytesIO()
+    fig.savefig(buf, format="png", dpi=130)
+    plt.close(fig)
+    return _png_bytes_to_base64(buf.getvalue())
+

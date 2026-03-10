@@ -10,7 +10,7 @@ from pathlib import Path
 from schemas_living import CalcRequest, CalcResponse
 from calculators.rent import calc_rent
 from calculators.buy import calc_buy_schedule
-from calculators.charts import build_main_chart_png_base64, build_mortgage_bar_chart_png_base64, build_mortgage_pie_chart_png_base64
+from calculators.charts import build_main_chart_png_base64, build_mortgage_bar_chart_png_base64, build_mortgage_pie_chart_png_base64, build_invest_profit_chart_png_base64, build_invest_capital_chart_png_base64
 from calculators.common import build_warnings
 
 
@@ -89,6 +89,18 @@ def calc(req: CalcRequest) -> CalcResponse:
 @app.post("/investment", response_model=InvestResponse)
 def investment(req: InvestRequest) -> InvestResponse:
     result = find_break_even_capital(req)
+
+    result["chart_profit_base64"] = build_invest_profit_chart_png_base64(
+        result["results"],
+        result["start_month_to_buy"],
+        result["deposit_path"],
+    )
+
+    result["chart_capital_base64"] = build_invest_capital_chart_png_base64(
+        result["results"],
+        result["start_month_to_buy"],
+    )
+
     return InvestResponse(**result)
 
 def make_top_text(rent_final, buy_final):

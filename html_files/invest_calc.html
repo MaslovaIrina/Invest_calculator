@@ -40,6 +40,18 @@
 
     .small { font-size:12px; opacity:0.8; margin-top:6px; }
 
+    .chartImg {
+      width: 100%;
+      max-width: 1000px;
+      max-height: 420px;
+      object-fit: contain;
+      display: block;
+      margin: 0 auto;
+      border: 1px solid #eee;
+      border-radius: 10px;
+      background: #fff;
+    }
+
     @media (min-width: 981px) {
       .leftColumn { position: sticky; top: 16px; }
     }
@@ -110,6 +122,26 @@
             </label>
           </div>
 
+          <hr style="border:none; border-top:1px solid #eee; margin:14px 0;">
+
+          <div style="margin-top:2px; font-weight:600;">Аренда после покупки</div>
+          <label>Сдача в аренду после покупки (rent_after_purchase)
+            <select id="rent_after_purchase">
+              <option value="no" selected>нет</option>
+              <option value="yes">да</option>
+            </select>
+          </label>
+
+          <div id="rent_after_purchase_common" style="display:none;">
+            <label>Стоимость аренды в месяц (monthly_rent_income)
+              <input id="monthly_rent_income" type="number" step="1000" value="70000">
+            </label>
+
+            <label>Рост аренды в год, % (yearly_rent_growth)
+              <input id="yearly_rent_growth" type="number" step="0.5" value="5">
+            </label>
+          </div>
+
           <label>Режим ипотеки (mortgage_mode)
             <select id="mortgage_mode">
               <option value="none" selected>без ипотеки</option>
@@ -154,27 +186,47 @@
 
             <div class="row">
               <div class="metric">
-                <b>Лучший месяц входа</b>
-                <div id="best_month">—</div>
+                <b>Месяц входа для покупки</b>
+                <div id="start_month_to_buy">—</div>
               </div>
 
               <div class="metric">
-                <b>Итог: депозит</b>
-                <div id="deposit_final">—</div>
+                <b>Месяц обгона депозита</b>
+                <div id="cross_calendar_month">—</div>
               </div>
 
               <div class="metric">
-                <b>Итог: покупка</b>
-                <div id="buy_final">—</div>
+                <b>Прибыль депозита в точке обгона</b>
+                <div id="deposit_profit_at_switch">—</div>
               </div>
 
               <div class="metric">
-                <b>Разница</b>
-                <div id="diff_final">—</div>
+                <b>Прибыль покупки в точке обгона</b>
+                <div id="buy_profit_at_switch">—</div>
+              </div>
+
+              <div class="metric">
+                <b>Разница в точке обгона</b>
+                <div id="difference_at_switch">—</div>
               </div>
             </div>
 
             <div id="top_text" style="padding-top:19px; margin-top:12px; font-weight:700; border-top:1px solid #ddd;">—</div>
+          </div>
+          <div class="card">
+            <h2 style="margin:0 0 12px;">График прибыли</h2>
+            <img id="chart_profit_img" class="chartImg" alt="invest profit chart"/>
+            <div class="small">
+              Синий — депозит, оранжевый — покупка.
+            </div>
+          </div>
+
+          <div class="card">
+            <h2 style="margin:0 0 12px;">График общего капитала</h2>
+            <img id="chart_capital_img" class="chartImg" alt="invest capital chart"/>
+            <div class="small">
+              Синий — депозит, оранжевый — покупка.
+            </div>
           </div>
 
           <div class="card">
@@ -182,8 +234,12 @@
             <div class="tableWrap" id="results_table"></div>
           </div>
           <div class="card">
-            <h2 style="margin:0 0 12px;">Детальные таблицы по каждому месяцу входа</h2>
-            <div id="details_tables"></div>
+            <details>
+              <summary style="font-weight:700; cursor:pointer;">
+                Детали за каждый месяц
+              </summary>
+              <div style="margin-top:12px;" id="details_tables"></div>
+            </details>
           </div>
         </div>
       </div>
@@ -211,15 +267,20 @@
       el("new_building_common").style.display = newBuildingMode === "yes" ? "block" : "none";
     }
 
+    function toggleRentAfterPurchaseBlocks() {
+      const mode = el("rent_after_purchase").value;
+      el("rent_after_purchase_common").style.display = mode === "yes" ? "block" : "none";
+    }
+
     function showResultsRightPanel() {
       el("right_placeholder").style.display = "none";
       el("right_results").style.display = "block";
     }
 
+
     function formatMoney(v) {
-      return Number(v).toLocaleString("ru-RU", {
-        maximumFractionDigits: 0
-      });
+      if (v === null || v === undefined || Number.isNaN(Number(v))) return "—";
+      return Number(v).toLocaleString("ru-RU", { maximumFractionDigits: 0 });
     }
 
     function buildTableHtml(headers, rows) {
@@ -241,6 +302,7 @@
       const c = el(containerId);
       c.innerHTML = buildTableHtml(headers, rows);
     }
+    
 
     function buildScenarioDetails(results) {
       const container = el("details_tables");
@@ -262,7 +324,9 @@
 
         const rows = (item.schedule || []).map(r => [
           r.month_from_start,
-          r.calendar_month,
+          formatMoney(r.deposit_profit),
+          formatMoney(r.buy_profit),
+          formatMoney(r.rent_income),
           formatMoney(r.mortgage_payment),
           formatMoney(r.interest_paid),
           formatMoney(r.principal_paid),
@@ -277,7 +341,9 @@
         const tableHtml = buildTableHtml(
           [
             "Месяц от входа",
-            "Календарный месяц",
+            "Прибыль депозита",
+            "Прибыль покупки",
+            "Аренда за месяц",
             "Платёж по ипотеке",
             "Проценты банку",
             "Погашение тела",
@@ -315,6 +381,7 @@
       const depositMode = el("deposit_mode").value;
       const mortgageMode = el("mortgage_mode").value;
       const newBuildingMode = el("new_building_mode").value;
+      const rentAfterPurchaseMode = el("rent_after_purchase").value;
 
       return {
         years_of_calculation: Number(el("years_of_calculation").value),
@@ -341,11 +408,21 @@
             ? Number(el("new_building_price_change").value)
             : null,
 
-        mortgage_mode: mortgageMode,
-        ipotek_percent:
-          mortgageMode !== "none"
-            ? Number(el("ipotek_percent").value)
-            : null,
+        rent_after_purchase: rentAfterPurchaseMode,
+          monthly_rent_income:
+            rentAfterPurchaseMode === "yes"
+              ? Number(el("monthly_rent_income").value)
+              : null,
+
+        yearly_rent_growth:
+          rentAfterPurchaseMode === "yes"
+            ? Number(el("yearly_rent_growth").value)
+            : null,    
+                mortgage_mode: mortgageMode,
+                ipotek_percent:
+                  mortgageMode !== "none"
+                    ? Number(el("ipotek_percent").value)
+                    : null,
 
         mortgage_term_years:
           mortgageMode === "fixed_term"
@@ -379,39 +456,59 @@
     function showResult(data) {
       showResultsRightPanel();
 
-      el("best_month").textContent = data.best_month ?? "—";
-      el("deposit_final").textContent = formatMoney(data.deposit_final ?? 0);
-      el("buy_final").textContent = formatMoney(data.best_buy_final ?? 0);
-      el("diff_final").textContent = formatMoney(data.difference_final ?? 0);
-      el("top_text").textContent = String(data.message || "—");
+      el("start_month_to_buy").textContent =
+        data.start_month_to_buy !== null && data.start_month_to_buy !== undefined
+          ? String(data.start_month_to_buy)
+          : "—";
+
+      el("cross_calendar_month").textContent =
+        data.cross_calendar_month !== null && data.cross_calendar_month !== undefined
+          ? String(data.cross_calendar_month)
+          : "—";
+
+      el("deposit_profit_at_switch").textContent = formatMoney(data.deposit_profit_at_switch);
+      el("buy_profit_at_switch").textContent = formatMoney(data.buy_profit_at_switch);
+      el("difference_at_switch").textContent = formatMoney(data.difference_at_switch);
+
+      el("top_text").textContent = String(data.message || "");
+
+      if (data.chart_profit_base64) {
+        el("chart_profit_img").src = "data:image/png;base64," + data.chart_profit_base64;
+      } else {
+        el("chart_profit_img").removeAttribute("src");
+      }
+
+      if (data.chart_capital_base64) {
+        el("chart_capital_img").src = "data:image/png;base64," + data.chart_capital_base64;
+      } else {
+        el("chart_capital_img").removeAttribute("src");
+      }
 
       buildTable(
         "results_table",
         [
           "Месяц входа",
-          "Стартовый капитал",
-          "Цена объекта",
-          "Месяцев до конца",
-          "Платёж по ипотеке",
-          "Всего выплачено по ипотеке",
+          "Первый месяц обгона",
+          "Прибыль депозита в точке обгона",
+          "Прибыль покупки в точке обгона",
+          "Разница в точке обгона",
+          "Итоговый капитал",
           "Остаток долга",
-          "Денежный баланс",
-          "Итоговый капитал"
+          "Денежный баланс"
         ],
-        data.results.map(r => [
+        (data.results || []).map(r => [
           r.start_month,
-          formatMoney(r.start_capital),
-          formatMoney(r.start_price),
-          r.months_left,
-          formatMoney(r.mortgage_payment),
-          formatMoney(r.total_mortgage_paid),
+          r.first_outperform_calendar_month ?? "—",
+          formatMoney(r.deposit_profit_at_switch),
+          formatMoney(r.buy_profit_at_switch),
+          formatMoney(r.difference_at_switch),
+          formatMoney(r.final_net_worth),
           formatMoney(r.loan_left),
           formatMoney(r.buy_balance),
-          formatMoney(r.final_net_worth),
         ])
       );
 
-      buildScenarioDetails(data.results);
+      buildScenarioDetails(data.results || []);
     }
 
     async function calculate() {
@@ -429,11 +526,13 @@
     el("mortgage_mode").addEventListener("change", toggleMortgageBlocks);
     el("deposit_mode").addEventListener("change", toggleDepositBlocks);
     el("new_building_mode").addEventListener("change", toggleNewBuildingBlocks);
+    el("rent_after_purchase").addEventListener("change", toggleRentAfterPurchaseBlocks);
     el("btn").addEventListener("click", calculate);
-
+    
     toggleMortgageBlocks();
     toggleDepositBlocks();
     toggleNewBuildingBlocks();
+    toggleRentAfterPurchaseBlocks();
   </script>
 </body>
 </html>
