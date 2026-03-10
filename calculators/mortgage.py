@@ -32,15 +32,7 @@ def calc_months_by_budget(loan: float, r: float, monthly_budget: float) -> int:
     n = math.log(monthly_budget / (monthly_budget - r * loan)) / math.log(1.0 + r)
     return int(math.ceil(n))
 
-
 def choose_mortgage_months(req, loan: float, r: float, months_total: int) -> int:
-    """
-    mortgage_mode:
-      - none       : ипотеки нет
-      - full_term  : ипотека на весь срок расчёта
-      - fixed_term : ипотека на заданный срок (mortgage_term_years)
-      - by_budget  : срок подбирается под платеж (mortgage_monthly_budget или monthly_free_money)
-    """
     if loan <= 0.0 or req.mortgage_mode == "none":
         return 0
 
@@ -55,27 +47,20 @@ def choose_mortgage_months(req, loan: float, r: float, months_total: int) -> int
     if req.mortgage_mode == "by_budget":
         budget = req.mortgage_monthly_budget or 0.0
         if budget <= 0.0:
-            budget = req.monthly_free_money
+            raise ValueError("mortgage_monthly_budget обязателен для by_budget")
         return calc_months_by_budget(loan, r, budget)
 
     raise ValueError(f"Unknown mortgage_mode: {req.mortgage_mode}")
 
 
-
-
 def choose_mortgage_payment(req, loan: float, r: float, months_of_mortgage: int) -> float:
-    """
-    Выбираем месячный платеж:
-      - by_budget  : платеж = mortgage_monthly_budget (или monthly_free_money)
-      - иначе      : аннуитет по сроку
-    """
     if loan <= 0.0 or req.mortgage_mode == "none" or months_of_mortgage <= 0:
         return 0.0
 
     if req.mortgage_mode == "by_budget":
         payment = req.mortgage_monthly_budget or 0.0
         if payment <= 0.0:
-            payment = req.monthly_free_money
+            raise ValueError("mortgage_monthly_budget обязателен для by_budget")
         return float(payment)
 
     return float(calc_annuity_payment(loan, r, months_of_mortgage))

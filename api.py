@@ -84,17 +84,12 @@ def calc(req: CalcRequest) -> CalcResponse:
         top_text = make_top_text(rent_final, buy_final),
         warnings = final_warnings
     )
-    
+
+
 @app.post("/investment", response_model=InvestResponse)
 def investment(req: InvestRequest) -> InvestResponse:
     result = find_break_even_capital(req)
-
-    return InvestResponse(
-        break_even_capital=result,
-        found=result is not None,
-        message="Порог найден" if result else "В заданном диапазоне не найден"
-    )
-
+    return InvestResponse(**result)
 
 def make_top_text(rent_final, buy_final):
     if buy_final > rent_final:

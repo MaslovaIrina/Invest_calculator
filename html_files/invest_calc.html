@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>Real Estate Calculator</title>
+  <title>Investment Calculator</title>
   <style>
     body { font-family: Arial, sans-serif; margin: 0; background: #fafafa; }
     .page { max-width: 1800px; margin: 0 auto; padding: 24px 16px; }
@@ -40,202 +40,276 @@
 
     .small { font-size:12px; opacity:0.8; margin-top:6px; }
 
-    /* Ограничение размера графиков */
-    .chartImg {
-      width: 100%;
-      max-width: 1000px;
-      max-height: 360px;
-      object-fit: contain;
-      display: block;
-      margin: 0 auto;
-      border: 1px solid #eee;
-      border-radius: 10px;
-      background: #fff;
-    }
-
     @media (min-width: 981px) {
       .leftColumn { position: sticky; top: 16px; }
     }
-    .mortgageChartsRow {
-      display: flex;
-      gap: 12px;
-      align-items: flex-start;
-      flex-wrap: wrap; /* чтобы на узком экране переносилось */
-    }
-
-    .mortgageChartsRow .chartImg {
-      width: 100%;
-      max-width: 490px;  /* чтобы 2 влезали рядом */
-      max-height: 360px;
-      object-fit: contain;
-    }
-    .warningBox {
-      background: #fff3cd;
-      border: 1px solid #ffeeba;
-      color: #856404;
-      padding: 10px 12px;
-      border-radius: 10px;
-      font-weight: 600;
-      margin-top: 10px;
-    }
-    .warningItem { margin: 6px 0; }
   </style>
 </head>
-
 <body>
   <div class="page">
     <h1>Инвестиции: депозит vs недвижимость</h1>
-    <div class="layout">
-      Поиск порога капитала, начиная с которого вложения в недвижимость становятся выгоднее депозита.
-    </div>
 
     <div class="layout">
+      <!-- LEFT -->
       <div class="leftColumn">
-      <!-- ЛЕВАЯ КОЛОНКА: ВВОД -->
         <div class="card">
-          <h2>Параметры</h2>
-          <div style="margin-top:10px; font-weight:600;">Общие</div>
-            <label>На сколько лет расчет (years_of_calculation)
-              <input id="years_of_calculation" type="number" step="1" value="10">
+          <h2 style="margin:0 0 12px;">Параметры</h2>
+
+          <label>Срок расчета, лет (years_of_calculation)
+            <input id="years_of_calculation" type="number" step="1" value="10">
+          </label>
+
+          <label>Начальный капитал (all_free_money)
+            <input id="all_free_money" type="number" step="500000" value="10000000">
+          </label>
+
+          <label>Ставка депозита, % годовых (invest_percent)
+            <input id="invest_percent" type="number" step="0.5" value="10">
+          </label>
+
+          <label>Пополнение депозита (deposit_refill)
+            <select id="deposit_mode">
+              <option value="none" selected>нет</option>
+              <option value="every_month">каждый месяц</option>
+              <option value="every_year">каждый год</option>
+            </select>
+          </label>
+
+          <div id="deposit_common" style="display:none; margin-top:12px;">
+            <label>Сумма пополнения (deposit_refill_amount)
+              <input id="deposit_refill_amount" type="number" step="1000" value="50000">
             </label>
-            <label>Начальный капитал (all_free_money)
-              <input id="all_free_money" type="number" step="1000" value="6000000">
+          </div>
+
+          <hr style="border:none; border-top:1px solid #eee; margin:14px 0;">
+
+          <div style="font-weight:700;">Покупка</div>
+
+          <label>Цена объекта (purchase_price)
+            <input id="purchase_price" type="number" step="500000" value="15000000">
+          </label>
+
+          <label>Рост цены в год, % (yearly_apart_price_change)
+            <input id="yearly_apart_price_change" type="number" step="0.2" value="5">
+          </label>
+
+          <label>Является ли вложением в новостройку?
+            <select id="new_building_mode">
+              <option value="none" selected>нет</option>
+              <option value="yes">да</option>
+            </select>
+          </label>
+
+          <div id="new_building_common" style="display:none; margin-top:12px;">
+            <label>Через сколько лет сдача (year_new_building_ready)
+              <input id="year_new_building_ready" type="number" step="1" value="3">
             </label>
 
+            <label>Ожидаемое подорожание новостройки после сдачи, % (new_building_price_change)
+              <input id="new_building_price_change" type="number" step="1" value="30">
+            </label>
+          </div>
 
-            <hr style="border:none; border-top:1px solid #eee; margin:14px 0;">
-            <div style="margin-top:2px; font-weight:600;">Депозит</div>
-            <label>Доходность депозита/инвестиций, % годовых (invest_percent)
-              <input id="invest_percent" type="number" step="0.5" value="12">
+          <label>Режим ипотеки (mortgage_mode)
+            <select id="mortgage_mode">
+              <option value="none" selected>без ипотеки</option>
+              <option value="fixed_term">на фиксированный срок</option>
+              <option value="by_budget">по ежемесячному бюджету</option>
+            </select>
+          </label>
+
+          <div id="mortgage_common" style="display:none; margin-top:12px;">
+            <label>Ставка по ипотеке, % годовых (ipotek_percent)
+              <input id="ipotek_percent" type="number" step="0.5" value="18">
             </label>
-            <label> Пополнение депозита 
-              <select id="deposit_mode">
-                <option value="none" selected>без пополнения</option>
-                <option value="every_month" >каждый месяц</option>
-                <option value="every_year" >каждый год</option>
-              </select>
+          </div>
+
+          <div id="mortgage_fixed_term" style="display:none; margin-top:12px;">
+            <label>Срок ипотеки, лет (mortgage_term_years)
+              <input id="mortgage_term_years" type="number" step="1" value="10">
             </label>
-            <div id="deposit_common" style="display:none; margin-top:12px;">
-              <label>Сумма пополнения депозита
-                <input id="deposit_refill_amount" type="number" step="1000" value="100000">
-              </label>
+          </div>
+
+          <div id="mortgage_budget" style="display:none; margin-top:12px;">
+            <label>Бюджет платежа в месяц (mortgage_monthly_budget)
+              <input id="mortgage_monthly_budget" type="number" step="1000" value="80000">
+            </label>
+          </div>
+
+          <button id="btn">Посчитать</button>
+          <div id="status" class="err"></div>
+        </div>
+      </div>
+
+      <!-- RIGHT -->
+      <div>
+        <div id="right_placeholder" class="placeholder">
+          <b>Заполните данные и нажмите «Посчитать».</b>
+          <div style="margin-top:8px;">Здесь появятся итоги и таблица по месяцам входа.</div>
+        </div>
+
+        <div id="right_results" style="display:none;">
+          <div class="card">
+            <h2 style="margin:0 0 12px;">Результаты</h2>
+
+            <div class="row">
+              <div class="metric">
+                <b>Лучший месяц входа</b>
+                <div id="best_month">—</div>
+              </div>
+
+              <div class="metric">
+                <b>Итог: депозит</b>
+                <div id="deposit_final">—</div>
+              </div>
+
+              <div class="metric">
+                <b>Итог: покупка</b>
+                <div id="buy_final">—</div>
+              </div>
+
+              <div class="metric">
+                <b>Разница</b>
+                <div id="diff_final">—</div>
+              </div>
             </div>
-            <hr style="border:none; border-top:1px solid #eee; margin:14px 0;">
 
-            <div style="margin-top:2px; font-weight:600;">Покупка</div>
-            <label>Цена объекта (purchase_price)
-              <input id="purchase_price" type="number" step="500000" value="10000000">
-            </label>
-            <label>Рост цены в год, % (yearly_apart_price_change)
-              <input id="yearly_apart_price_change" type="number" step="0.2" value="7">
-            </label>
+            <div id="top_text" style="padding-top:19px; margin-top:12px; font-weight:700; border-top:1px solid #ddd;">—</div>
+          </div>
 
-            <label> Является ли вложением в новостройку?
-              <select id="new_building_mode">
-                <option value="none" selected>нет</option>
-                <option value="yes" >да</option>
-              </select>
-            </label>
-            <div id="new_building_common" style="display:none; margin-top:12px;">
-              <label>Через сколько лет сдача
-                <input id="year_new_buildeing_ready" type="number" step="1" value="3">
-              </label>
-              <label>Ожидаемое подорожание новостройки после сдачи
-                <input id="new_building_price_change" type="number" step="1" value="30">
-              </label>
-
-
-            </div>
-
-            <label>Режим ипотеки (mortgage_mode)
-              <select id="mortgage_mode">
-                <option value="none" selected>без ипотеки</option>
-                <option value="fixed_term">на фиксированный срок</option>
-                <option value="by_budget">по ежемесячному бюджету</option>
-              </select>
-            </label>
-
-            <div id="mortgage_common" style="display:none; margin-top:12px;">
-              <label>Ставка по ипотеке, % годовых (ipotek_percent)
-                <input id="ipotek_percent" type="number" step="0.5" value="18">
-              </label>
-            </div>
-
-            <div id="mortgage_fixed_term" style="display:none; margin-top:12px;">
-              <label>Срок ипотеки, лет (mortgage_term_years)
-                <input id="mortgage_term_years" type="number" step="1" value="10">
-              </label>
-            </div>
-
-            <div id="mortgage_budget" style="display:none; margin-top:12px;">
-              <label>Бюджет платежа в месяц (mortgage_monthly_budget)
-                <input id="mortgage_monthly_budget" type="number" step="1000" value="80000">
-              </label>
-            </div>
-
-
-            <hr style="border:none; border-top:1px solid #eee; margin:14px 0;">
-
-
-            <button id="btn">Посчитать</button>
-            <div id="status" class="err"></div>
+          <div class="card">
+            <h2 style="margin:0 0 12px;">Сценарии по месяцам входа</h2>
+            <div class="tableWrap" id="results_table"></div>
+          </div>
+          <div class="card">
+            <h2 style="margin:0 0 12px;">Детальные таблицы по каждому месяцу входа</h2>
+            <div id="details_tables"></div>
           </div>
         </div>
       </div>
+    </div>
+  </div>
 
-
-        <button class="btn" disabled>
-          Рассчитать
-        </button>
-      </div>
-
-      <!-- ПРАВАЯ КОЛОНКА: РЕЗУЛЬТАТ -->
-      <div class="card">
-        <h2>Результат</h2>
-
-        <div id="top_text" class="muted">
-          Здесь будет вывод результата
-        </div>
-
-        
   <script>
-    const API_CALC_URL = "http://127.0.0.1:8000/investment";
+    const API_CALC_URL = "/investment";
     const el = (id) => document.getElementById(id);
-
-    // -----------------------------
-    // Toggle blocks
-    // -----------------------------
 
     function toggleMortgageBlocks() {
       const mode = el("mortgage_mode").value;
-
-      el("mortgage_common").style.display =
-        mode !== "none" ? "block" : "none";
-
-      el("mortgage_fixed_term").style.display =
-        mode === "fixed_term" ? "block" : "none";
-
-      el("mortgage_budget").style.display =
-        mode === "by_budget" ? "block" : "none";
+      el("mortgage_common").style.display = mode !== "none" ? "block" : "none";
+      el("mortgage_fixed_term").style.display = mode === "fixed_term" ? "block" : "none";
+      el("mortgage_budget").style.display = mode === "by_budget" ? "block" : "none";
     }
 
     function toggleDepositBlocks() {
       const depositMode = el("deposit_mode").value;
-
-      el("deposit_common").style.display =
-        depositMode !== "none" ? "block" : "none";
+      el("deposit_common").style.display = depositMode !== "none" ? "block" : "none";
     }
 
     function toggleNewBuildingBlocks() {
       const newBuildingMode = el("new_building_mode").value;
-
-      el("new_building_common").style.display =
-        newBuildingMode === "yes" ? "block" : "none";
+      el("new_building_common").style.display = newBuildingMode === "yes" ? "block" : "none";
     }
 
-    // -----------------------------
-    // Build payload 
-    // -----------------------------
+    function showResultsRightPanel() {
+      el("right_placeholder").style.display = "none";
+      el("right_results").style.display = "block";
+    }
+
+    function formatMoney(v) {
+      return Number(v).toLocaleString("ru-RU", {
+        maximumFractionDigits: 0
+      });
+    }
+
+    function buildTableHtml(headers, rows) {
+      let html = "<table><thead><tr>";
+      for (const h of headers) html += `<th>${h}</th>`;
+      html += "</tr></thead><tbody>";
+
+      for (const r of rows) {
+        html += "<tr>";
+        for (const cell of r) html += `<td>${cell}</td>`;
+        html += "</tr>";
+      }
+
+      html += "</tbody></table>";
+      return html;
+    }
+
+    function buildTable(containerId, headers, rows) {
+      const c = el(containerId);
+      c.innerHTML = buildTableHtml(headers, rows);
+    }
+
+    function buildScenarioDetails(results) {
+      const container = el("details_tables");
+
+      if (!results || results.length === 0) {
+        container.innerHTML = "<div class='small'>Нет данных для детальных таблиц.</div>";
+        return;
+      }
+
+      let html = "";
+
+      for (const item of results) {
+        const summary = `
+          Вход в месяц ${item.start_month}
+          — стартовый капитал ${formatMoney(item.start_capital)}
+          — цена объекта ${formatMoney(item.start_price)}
+          — итоговый капитал ${formatMoney(item.final_net_worth)}
+        `;
+
+        const rows = (item.schedule || []).map(r => [
+          r.month_from_start,
+          r.calendar_month,
+          formatMoney(r.mortgage_payment),
+          formatMoney(r.interest_paid),
+          formatMoney(r.principal_paid),
+          formatMoney(r.loan_balance),
+          formatMoney(r.buy_balance_change),
+          formatMoney(r.paid_apart_part),
+          formatMoney(r.buy_balance),
+          formatMoney(r.apart_price),
+          formatMoney(r.net_worth_buy),
+        ]);
+
+        const tableHtml = buildTableHtml(
+          [
+            "Месяц от входа",
+            "Календарный месяц",
+            "Платёж по ипотеке",
+            "Проценты банку",
+            "Погашение тела",
+            "Остаток долга",
+            "Изменение общего капитала",
+            "Капитал в объекте",
+            "Денежный баланс",
+            "Рыночная цена объекта",
+            "Итоговый капитал"
+          ],
+          rows
+        );
+
+        html += `
+          <details>
+            <summary>${summary}</summary>
+            <div class="small">
+              Осталось месяцев до конца расчета: ${item.months_left},
+              общий платёж по ипотеке: ${formatMoney(item.total_mortgage_paid)},
+              остаток долга в конце: ${formatMoney(item.loan_left)}
+            </div>
+            <div class="tableWrap" style="margin-top:10px;">
+              ${tableHtml}
+            </div>
+          </details>
+        `;
+      }
+
+      container.innerHTML = html;
+    }
+
+
 
     function buildPayload() {
       const depositMode = el("deposit_mode").value;
@@ -257,9 +331,9 @@
         yearly_apart_price_change: Number(el("yearly_apart_price_change").value),
 
         new_building: newBuildingMode,
-        year_new_buildeing_ready:
+        year_new_building_ready:
           newBuildingMode === "yes"
-            ? Number(el("year_new_buildeing_ready").value)
+            ? Number(el("year_new_building_ready").value)
             : null,
 
         new_building_price_change:
@@ -287,67 +361,79 @@
       };
     }
 
-    // -----------------------------
-    // API call
-    // -----------------------------
+    async function fetchJson(url, payload) {
+      const res = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(`API error ${res.status}: ${text}`);
+      }
+
+      return await res.json();
+    }
+
+    function showResult(data) {
+      showResultsRightPanel();
+
+      el("best_month").textContent = data.best_month ?? "—";
+      el("deposit_final").textContent = formatMoney(data.deposit_final ?? 0);
+      el("buy_final").textContent = formatMoney(data.best_buy_final ?? 0);
+      el("diff_final").textContent = formatMoney(data.difference_final ?? 0);
+      el("top_text").textContent = String(data.message || "—");
+
+      buildTable(
+        "results_table",
+        [
+          "Месяц входа",
+          "Стартовый капитал",
+          "Цена объекта",
+          "Месяцев до конца",
+          "Платёж по ипотеке",
+          "Всего выплачено по ипотеке",
+          "Остаток долга",
+          "Денежный баланс",
+          "Итоговый капитал"
+        ],
+        data.results.map(r => [
+          r.start_month,
+          formatMoney(r.start_capital),
+          formatMoney(r.start_price),
+          r.months_left,
+          formatMoney(r.mortgage_payment),
+          formatMoney(r.total_mortgage_paid),
+          formatMoney(r.loan_left),
+          formatMoney(r.buy_balance),
+          formatMoney(r.final_net_worth),
+        ])
+      );
+
+      buildScenarioDetails(data.results);
+    }
 
     async function calculate() {
+      el("status").textContent = "";
+
       try {
-        el("status").textContent = "";
-
         const payload = buildPayload();
-
-        const response = await fetch(API_CALC_URL, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify(payload)
-        });
-
-        if (!response.ok) {
-          const text = await response.text();
-          throw new Error(text);
-        }
-
-        const data = await response.json();
+        const data = await fetchJson(API_CALC_URL, payload);
         showResult(data);
-
       } catch (error) {
         el("status").textContent = "Ошибка: " + error.message;
       }
     }
-
-    // -----------------------------
-    // Render result
-    // -----------------------------
-
-    function showResult(data) {
-      if (data.found) {
-        el("top_text").textContent =
-          "Порог капитала: " +
-          Number(data.break_even_capital).toFixed(0) +
-          " руб.";
-      } else {
-        el("top_text").textContent = data.message;
-      }
-    }
-
-    // -----------------------------
-    // Event listeners
-    // -----------------------------
 
     el("mortgage_mode").addEventListener("change", toggleMortgageBlocks);
     el("deposit_mode").addEventListener("change", toggleDepositBlocks);
     el("new_building_mode").addEventListener("change", toggleNewBuildingBlocks);
     el("btn").addEventListener("click", calculate);
 
-    // Initial state
     toggleMortgageBlocks();
     toggleDepositBlocks();
     toggleNewBuildingBlocks();
-
   </script>
-
-
 </body>
+</html>
